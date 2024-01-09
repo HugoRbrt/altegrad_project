@@ -13,15 +13,18 @@ import numpy as np
 from transformers import AutoTokenizer
 import torch
 from torch import optim
+from sklearn.metrics.pairwise import cosine_similarity
 import time
 import os
 import pandas as pd
+from data_loader import GraphTextDataset, GraphDataset, TextDataset
+from model import Model
 from shared import (
     ROOT_DIR, OUTPUT_FOLDER_NAME,
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST,
 )
-#from experiments import get_experiment_config, get_training_content
+from experiments import get_experiment_config, get_training_content
 WANDB_AVAILABLE = False
 try:
     WANDB_AVAILABLE = True
@@ -30,6 +33,11 @@ except ImportError:
     logging.warning("Could not import wandb. Disabling wandb.")
     pass
 
+CE = torch.nn.CrossEntropyLoss()
+def contrastive_loss(v1, v2):
+    logits = torch.matmul(v1,torch.transpose(v2, 0, 1))
+    labels = torch.arange(logits.shape[0], device=v1.device)
+    return CE(logits, labels) + CE(torch.transpose(logits, 0, 1), labels)
 
 def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.ArgumentParser:
     if parser is None:
@@ -39,103 +47,15 @@ def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.Arg
     parser.add_argument("-nowb", "--no-wandb", action="store_true", help="Disable weights and biases")
     parser.add_argument("--cpu", action="store_true", help="Force CPU")
     return parser
-
-
-def training_loop(
-    model, optimizer, dl_dict: dict, config: dict,
-    device: str = "cuda", wandb_flag: bool = False,
-    output_dir: Path = None
-):
-    for n_epoch in tqdm(range(config[NB_EPOCHS])):
-        current_loss = {TRAIN: 0., VALIDATION: 0., TEST: 0.}
-        for phase in [TRAIN, VALIDATION, TEST]:
-            if phase == TRAIN:
-                model.train()
-            else:
-                model.eval()
-            for x, y in tqdm(dl_dict[phase], desc=f"{phase} - Epoch {n_epoch}"):
-                x, y = x.to(device), y.to(device)
-                optimizer.zero_grad()
-                with torch.set_grad_enabled(phase == TRAIN):
-                    y_pred = model(x)
-                    loss = torch.nn.functional.mse_loss(y_pred, y)
-                    if phase == TRAIN:
-                        loss.backward()
-                        optimizer.step()
-                current_loss[phase] += loss.item()
-            current_loss[phase] /= (len(dl_dict[phase]))
-        for phase in [VALIDATION, TEST]:
-            print(f"{phase}: Epoch {n_epoch} - Loss: {current_loss[phase]:.3e}")
-        if output_dir is not None:
-            with open(output_dir/f"metrics_{n_epoch}.json", "w") as f:
-                json.dump(current_loss, f)
-        if wandb_flag:
-            wandb.log(current_loss)
-    if output_dir is not None:
-        torch.save(model.cpu().state_dict(), output_dir/"last_model.pt")
-    return model
-
-
-def train(config: dict, output_dir: Path, device: str = "cuda", wandb_flag: bool = False):
-    logging.basicConfig(level=logging.INFO)
-    logging.info(f"Training experiment {config[ID]} on device {device}...")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    with open(output_dir/"config.json", "w") as f:
-        json.dump(config, f)
-    model, optimizer, dl_dict = get_training_content(config, device=device)
-    model.to(device)
-    if wandb_flag:
-        wandb.init(
-            project="mva-pepites",
-            name=config[NAME],
-            tags=["debug"],
-            config=config
-        )
-    model = training_loop(model, optimizer, dl_dict, config, device=device,
-                          wandb_flag=wandb_flag, output_dir=output_dir)
-
-    if wandb_flag:
-        wandb.finish()
-
-
-def train_main(argv):
-    parser = get_parser()
-    args = parser.parse_args(argv)
-    if not WANDB_AVAILABLE:
-        args.no_wandb = True
-    device = "cpu" if args.cpu else ("cuda" if torch.cuda.is_available() else "cpu")
-    for exp in args.exp:
-        config = get_experiment_config(exp)
-        print(config)
-        output_dir = Path(args.output_dir)/config[NAME]
-        logging.info(f"Training experiment {config[ID]} on device {device}...")
-        train(config, device=device, output_dir=output_dir, wandb_flag=not args.no_wandb)
-
-
-########## HUGO ##########
-
-from data_loader import GraphTextDataset, GraphDataset, TextDataset
-from model import Model
-
-def contrastive_loss(v1, v2):
-    logits = torch.matmul(v1,torch.transpose(v2, 0, 1))
-    labels = torch.arange(logits.shape[0], device=v1.device)
-    return CE(logits, labels) + CE(torch.transpose(logits, 0, 1), labels)
     
-if __name__ == "__main__":
-    CE = torch.nn.CrossEntropyLoss()
 
-    model_name = 'distilbert-base-uncased'
+def run_experiment(nb_epochs, batch_size, learning_rate, model_name):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     gt = np.load("/kaggle/input/datanlp/data/token_embedding_dict.npy", allow_pickle=True)[()]
     val_dataset = GraphTextDataset(root='/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
     train_dataset = GraphTextDataset(root='/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    nb_epochs = 5
-    batch_size = 32
-    learning_rate = 2e-5
 
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -242,12 +162,17 @@ if __name__ == "__main__":
                                 attention_mask=batch['attention_mask'].to(device)):
             text_embeddings.append(output.tolist())
 
-
-    from sklearn.metrics.pairwise import cosine_similarity
-
     similarity = cosine_similarity(text_embeddings, graph_embeddings)
 
     solution = pd.DataFrame(similarity)
     solution['ID'] = solution.index
     solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
     solution.to_csv('submission.csv', index=False)
+
+if __name__ == "__main__":
+    parser = get_parser()
+    args = parser.parse_args(sys.argv[1:])
+    if not WANDB_AVAILABLE:
+        args.no_wandb = True
+    
+    run_experiment(nb_epochs=5, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased')

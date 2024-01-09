@@ -60,8 +60,3 @@ from typing import Tuple
 #     return model, optimizer, dl_dict
 
 
-# if __name__ == "__main__":
-#     config = get_experiment_config(0)
-#     print(config)
-#     model, optimizer, dl_dict = get_training_content(config)
-#     print(len(dl_dict[TRAIN].dataset))

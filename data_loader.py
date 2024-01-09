@@ -10,8 +10,6 @@ from torch_geometric.data import Data
 from torch.utils.data import Dataset as TorchDataset
 import pandas as pd
 
-########### HUGO ###########
-
 class GraphTextDataset(Dataset):
     def __init__(self, root, gt, split, tokenizer=None, transform=None, pre_transform=None):
         self.root = root

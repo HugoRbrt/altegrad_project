@@ -5,9 +5,6 @@ from torch_geometric.nn import GCNConv
 from torch_geometric.nn import global_mean_pool
 from transformers import AutoModel
 
-############ HUGO ############
-
-
 class GraphEncoder(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
         super(GraphEncoder, self).__init__()
