@@ -20,6 +20,11 @@ import pandas as pd
 from data_loader import GraphTextDataset, GraphDataset, TextDataset
 from model import Model
 from configuration import GIT_USER
+from shared import (
+    ROOT_DIR, OUTPUT_FOLDER_NAME,
+    ID, NAME, NB_EPOCHS,
+    TRAIN, VALIDATION, TEST,
+)
 WANDB_AVAILABLE = False
 try:
     WANDB_AVAILABLE = True
