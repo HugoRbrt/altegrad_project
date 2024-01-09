@@ -127,9 +127,9 @@ if __name__ == "__main__":
 
     model_name = 'distilbert-base-uncased'
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    gt = np.load("./data/token_embedding_dict.npy", allow_pickle=True)[()]
-    val_dataset = GraphTextDataset(root='./data/', gt=gt, split='val', tokenizer=tokenizer)
-    train_dataset = GraphTextDataset(root='./data/', gt=gt, split='train', tokenizer=tokenizer)
+    gt = np.load("/kaggle/input/datanlp/data/token_embedding_dict.npy", allow_pickle=True)[()]
+    val_dataset = GraphTextDataset(root='/kaggle/input/datanlp/data/', gt=gt, split='val', tokenizer=tokenizer)
+    train_dataset = GraphTextDataset(root='/kaggle/input/datanlp/data/', gt=gt, split='train', tokenizer=tokenizer)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -217,8 +217,8 @@ if __name__ == "__main__":
     graph_model = model.get_graph_encoder()
     text_model = model.get_text_encoder()
 
-    test_cids_dataset = GraphDataset(root='./data/', gt=gt, split='test_cids')
-    test_text_dataset = TextDataset(file_path='./data/test_text.txt', tokenizer=tokenizer)
+    test_cids_dataset = GraphDataset(root='/kaggle/input/datanlp/data/', gt=gt, split='test_cids')
+    test_text_dataset = TextDataset(file_path='/kaggle/input/datanlp/data/test_text.txt', tokenizer=tokenizer)
 
     idx_to_cid = test_cids_dataset.get_idx_to_cid()
 
