@@ -207,7 +207,7 @@ def run_experiment(cfg, args):
     
     if not args.no_wandb:
         submission_artifact = wandb.Artifact('submission', type='results')
-        submission_artifact.add_file('/kaggle/working/submission.csv')
+        submission_artifact.add_file('submission.csv')
         wandb.log_artifact(submission_artifact)
         
         model_artifact = wandb.Artifact('model', type='model')
