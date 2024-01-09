@@ -49,7 +49,34 @@ def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.Arg
     return parser
     
 
-def run_experiment(nb_epochs, batch_size, learning_rate, model_name):
+def configure_experiment(name_exp: str, nb_epochs: int, batch_size: int, learning_rate: float, model_name: str, scheduler: str, graph_pooling: str, graph_model: str, text_model: str, with_attention_pooling: bool, with_lora: bool, comment: str) -> dict:
+    cfg = {
+    'who': GIT_USER,
+    'name_exp': name_exp,
+    'nb_epochs': nb_epochs,
+    'batch_size': batch_size,
+    'learning_rate': learning_rate,
+    'num_node_features': 300,
+    'nout':  768,
+    'nhid': 300,
+    'graph_hidden_channels': 300,
+    'nhead_graph': 20,
+    'with_attention_pooling':True,
+    'with_lora':True,
+    'text_model':'Roberta',
+    'scheduler':'cosine',
+    'graph_pooling':'maxpooling',
+    'graph_model':'GAT 4 layers',
+    'comment': '',
+    }
+    return cfg
+
+def run_experiment(cfg, args):
+    nb_epochs = cfg['nb_epochs']
+    batch_size = cfg['batch_size']
+    learning_rate =cfg['learning_rate']
+    model_name =cfg['model_name']
+    
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     gt = np.load("/kaggle/input/datanlp/data/token_embedding_dict.npy", allow_pickle=True)[()]
     val_dataset = GraphTextDataset(root='/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
@@ -168,33 +195,26 @@ def run_experiment(nb_epochs, batch_size, learning_rate, model_name):
     solution['ID'] = solution.index
     solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
     solution.to_csv('submission.csv', index=False)
-
-def configure_experiment(name_exp: str, nb_epochs: int, batch_size: int, learning_rate: float, model_name: str, scheduler: str, graph_pooling: str, graph_model: str, text_model: str, with_attention_pooling: bool, with_lora: bool, comment: str) -> dict:
-    cfg = {
-    'who': GIT_USER,
-    'name_exp': name_exp,
-    'nb_epochs': nb_epochs,
-    'batch_size': batch_size,
-    'learning_rate': learning_rate,
-    'num_node_features': 300,
-    'nout':  768,
-    'nhid': 300,
-    'graph_hidden_channels': 300,
-    'nhead_graph': 20,
-    'with_attention_pooling':True,
-    'with_lora':True,
-    'text_model':'Roberta',
-    'scheduler':'cosine',
-    'graph_pooling':'maxpooling',
-    'graph_model':'GAT 4 layers',
-    'comment': '',
-    }
-    return cfg
+    
+    if not args.no_wandb:
+        submission_artifact = wandb.Artifact('submission', type='csv')
+        submission_artifact.add_file('/kaggle/working/submission.csv')
+        wandb.log_artifact(submission_artifact)
+        
+        model_artifact = wandb.Artifact('model', type='model')
+        model_artifact.add_file(save_path)
+        wandb.log_artifact(model_artifact)
 
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args(sys.argv[1:])
+    cfg = configure_experiment(name_exp="baseline", nb_epochs=5, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased', scheduler='cosine', graph_pooling='maxpooling', graph_model='GAT 4 layers', text_model='Roberta', with_attention_pooling=True, with_lora=True, comment='I run with ...')
     if not WANDB_AVAILABLE:
         args.no_wandb = True
-    cfg = configure_experiment(name_exp="baseline", nb_epochs=5, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased', scheduler='cosine', graph_pooling='maxpooling', graph_model='GAT 4 layers', text_model='Roberta', with_attention_pooling=True, with_lora=True, comment='I run with ...')
-    run_experiment(nb_epochs=5, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased')
+    if not args.no_wandb:
+        run = wandb.init(
+        project="text2mol",
+        name=cfg['name_exp'],
+        config=cfg,
+        )
+    run_experiment(cfg, args)
