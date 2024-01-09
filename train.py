@@ -85,9 +85,9 @@ def run_experiment(cfg, args):
     model_name =cfg['model_name']
     
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    gt = np.load("/kaggle/input/datanlp/data/token_embedding_dict.npy", allow_pickle=True)[()]
-    val_dataset = GraphTextDataset(root='/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
-    train_dataset = GraphTextDataset(root='/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)
+    gt = np.load("/kaggle/input/nlplsv3/kaggle/working/token_embedding_dict.npy", allow_pickle=True)[()]
+    val_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
+    train_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)
 
     device = "cpu" if args.cpu else ("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -159,7 +159,7 @@ def run_experiment(cfg, args):
                 "epoch": i, 'loss/val':  str(val_loss/len(val_loader)),
             })
         if best_validation_loss==val_loss:
-            print('validation loss improoved saving checkpoint...')
+            print('validation loss improved saving checkpoint...')
             save_path = os.path.join('./', 'model'+str(i)+'.pt')
             torch.save({
             'epoch': i,
@@ -179,8 +179,8 @@ def run_experiment(cfg, args):
     graph_model = model.get_graph_encoder()
     text_model = model.get_text_encoder()
 
-    test_cids_dataset = GraphDataset(root='./data/', gt=gt, split='test_cids')
-    test_text_dataset = TextDataset(file_path='./data/test_text.txt', tokenizer=tokenizer)
+    test_cids_dataset = GraphDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='test_cids')
+    test_text_dataset = TextDataset(file_path='/kaggle/input/nlplsv3/kaggle/working/test_text.txt', tokenizer=tokenizer)
 
     idx_to_cid = test_cids_dataset.get_idx_to_cid()
 
