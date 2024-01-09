@@ -19,11 +19,6 @@ import os
 import pandas as pd
 from data_loader import GraphTextDataset, GraphDataset, TextDataset
 from model import Model
-from shared import (
-    ROOT_DIR, OUTPUT_FOLDER_NAME,
-    ID, NAME, NB_EPOCHS,
-    TRAIN, VALIDATION, TEST,
-)
 from configuration import GIT_USER
 WANDB_AVAILABLE = False
 try:
@@ -34,6 +29,7 @@ except ImportError:
     pass
 
 CE = torch.nn.CrossEntropyLoss()
+
 def contrastive_loss(v1, v2):
     logits = torch.matmul(v1,torch.transpose(v2, 0, 1))
     labels = torch.arange(logits.shape[0], device=v1.device)
@@ -42,12 +38,9 @@ def contrastive_loss(v1, v2):
 def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.ArgumentParser:
     if parser is None:
         parser = argparse.ArgumentParser(description="Train a model")
-    parser.add_argument("-e", "--exp", nargs="+", type=int, required=True, help="Experiment id")
-    parser.add_argument("-o", "--output-dir", type=str, default=ROOT_DIR/OUTPUT_FOLDER_NAME, help="Output directory")
     parser.add_argument("-nowb", "--no-wandb", action="store_true", help="Disable weights and biases")
     parser.add_argument("--cpu", action="store_true", help="Force CPU")
     return parser
-    
 
 def configure_experiment(name_exp: str, nb_epochs: int, batch_size: int, learning_rate: float, model_name: str, scheduler: str, graph_pooling: str, graph_model: str, text_model: str, with_attention_pooling: bool, with_lora: bool, comment: str) -> dict:
     cfg = {
@@ -73,6 +66,12 @@ def configure_experiment(name_exp: str, nb_epochs: int, batch_size: int, learnin
     return cfg
 
 def run_experiment(cfg, args):
+    if not args.no_wandb:
+        run = wandb.init(
+        project="text2mol",
+        name=cfg['name_exp'],
+        config=cfg,
+        )
     nb_epochs = cfg['nb_epochs']
     batch_size = cfg['batch_size']
     learning_rate =cfg['learning_rate']
@@ -83,7 +82,7 @@ def run_experiment(cfg, args):
     val_dataset = GraphTextDataset(root='/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
     train_dataset = GraphTextDataset(root='/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cpu" if args.cpu else ("cuda" if torch.cuda.is_available() else "cpu")
 
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -127,11 +126,12 @@ def run_experiment(cfg, args):
                 time2 = time.time()
                 print("Iteration: {0}, Time: {1:.4f} s, training loss: {2:.4f}".format(count_iter,
                                                                             time2 - time1, loss/printEvery))
+                if not args.no_wandb:
+                    wandb.log({
+                        "epoch": i, 'loss/train': loss/printEvery,
+                    })
                 losses.append(loss)
                 loss = 0 
-                wandb.log({
-                    "epoch": i, 'loss/train': loss/printEvery,
-                })
         model.eval()       
         val_loss = 0        
         for batch in val_loader:
@@ -147,9 +147,10 @@ def run_experiment(cfg, args):
             val_loss += current_loss.item()
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
-        wandb.log({
-            "epoch": i, 'loss/val':  str(val_loss/len(val_loader)),
-        })
+        if not args.no_wandb:
+            wandb.log({
+                "epoch": i, 'loss/val':  str(val_loss/len(val_loader)),
+            })
         if best_validation_loss==val_loss:
             print('validation loss improoved saving checkpoint...')
             save_path = os.path.join('./', 'model'+str(i)+'.pt')
@@ -198,24 +199,21 @@ def run_experiment(cfg, args):
     solution.to_csv('submission.csv', index=False)
     
     if not args.no_wandb:
-        submission_artifact = wandb.Artifact('submission', type='csv')
+        submission_artifact = wandb.Artifact('submission', type='results')
         submission_artifact.add_file('/kaggle/working/submission.csv')
         wandb.log_artifact(submission_artifact)
         
         model_artifact = wandb.Artifact('model', type='model')
         model_artifact.add_file(save_path)
         wandb.log_artifact(model_artifact)
+        wandb.finish()
 
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args(sys.argv[1:])
-    cfg = configure_experiment(name_exp="baseline", nb_epochs=5, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased', scheduler='cosine', graph_pooling='maxpooling', graph_model='GAT 4 layers', text_model='Roberta', with_attention_pooling=True, with_lora=True, comment='I run with ...')
     if not WANDB_AVAILABLE:
         args.no_wandb = True
-    if not args.no_wandb:
-        run = wandb.init(
-        project="text2mol",
-        name=cfg['name_exp'],
-        config=cfg,
-        )
+    #do it for each experiments:
+    cfg = configure_experiment(name_exp="baseline", nb_epochs=1, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased', scheduler='cosine', graph_pooling='maxpooling', graph_model='GAT 4 layers', text_model='Roberta', with_attention_pooling=True, with_lora=True, comment='I run with ...')
     run_experiment(cfg, args)
+    #and you can redo another one
