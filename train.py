@@ -127,9 +127,9 @@ if __name__ == "__main__":
 
     model_name = 'distilbert-base-uncased'
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    gt = np.load("./data/token_embedding_dict.npy", allow_pickle=True)[()]
-    val_dataset = GraphTextDataset(root='./data/', gt=gt, split='val', tokenizer=tokenizer)
-    train_dataset = GraphTextDataset(root='./data/', gt=gt, split='train', tokenizer=tokenizer)
+    gt = np.load("/kaggle/input/datanlp/data/token_embedding_dict.npy", allow_pickle=True)[()]
+    val_dataset = GraphTextDataset(root='/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
+    train_dataset = GraphTextDataset(root='/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -181,6 +181,9 @@ if __name__ == "__main__":
                                                                             time2 - time1, loss/printEvery))
                 losses.append(loss)
                 loss = 0 
+                wandb.log({
+                    "epoch": i, 'loss/train': loss/printEvery,
+                })
         model.eval()       
         val_loss = 0        
         for batch in val_loader:
@@ -196,6 +199,9 @@ if __name__ == "__main__":
             val_loss += current_loss.item()
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
+        wandb.log({
+            "epoch": i, 'loss/val':  str(val_loss/len(val_loader)),
+        })
         if best_validation_loss==val_loss:
             print('validation loss improoved saving checkpoint...')
             save_path = os.path.join('./', 'model'+str(i)+'.pt')
