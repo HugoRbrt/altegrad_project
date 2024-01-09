@@ -11,7 +11,7 @@ from shared import (
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST,
 )
-from experiments import get_experiment_config, get_training_content
+from code import get_experiment_config, get_training_content
 WANDB_AVAILABLE = False
 try:
     WANDB_AVAILABLE = True

@@ -5,9 +5,9 @@ from shared import (
     N_PARAMS,
     OPTIMIZER, LR, PARAMS
 )
-from model import ConvModel
+from code import ConvModel
 import torch
-from data_loader import get_dataloaders
+from code import get_dataloaders
 from typing import Tuple
 
 
