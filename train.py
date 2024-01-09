@@ -56,6 +56,7 @@ def configure_experiment(name_exp: str, nb_epochs: int, batch_size: int, learnin
     'nb_epochs': nb_epochs,
     'batch_size': batch_size,
     'learning_rate': learning_rate,
+    'model_name': model_name,
     'num_node_features': 300,
     'nout':  768,
     'nhid': 300,
