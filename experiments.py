@@ -1,13 +1,13 @@
-from .shared import (
+from shared import (
     ID, NAME, NB_EPOCHS, DATALOADER, BATCH_SIZE,
     TRAIN, VALIDATION, TEST,
     ARCHITECTURE, MODEL,
     N_PARAMS,
     OPTIMIZER, LR, PARAMS
 )
-from .model import ConvModel
+from model import ConvModel
 import torch
-from .data_loader import get_dataloaders
+from data_loader import get_dataloaders
 from typing import Tuple
 
 

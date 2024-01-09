@@ -7,12 +7,12 @@ from pathlib import Path
 import wandb
 import json
 from tqdm import tqdm
-from .shared import (
+from shared import (
     ROOT_DIR, OUTPUT_FOLDER_NAME,
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST,
 )
-from .experiments import get_experiment_config, get_training_content
+from experiments import get_experiment_config, get_training_content
 WANDB_AVAILABLE = False
 try:
     WANDB_AVAILABLE = True

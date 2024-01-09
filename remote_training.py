@@ -10,8 +10,8 @@ except ImportError:
 import argparse
 import sys
 import subprocess
-from code import ROOT_DIR, OUTPUT_FOLDER_NAME
-from code import get_parser as get_train_parser
+from shared import ROOT_DIR, OUTPUT_FOLDER_NAME
+from train import get_parser as get_train_parser
 from typing import Optional
 from configuration import KAGGLE_DATASET_LIST, NB_ID, GIT_USER, GIT_REPO
 
