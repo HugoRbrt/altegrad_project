@@ -24,7 +24,7 @@ from shared import (
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST,
 )
-from experiments import get_experiment_config, get_training_content
+from configuration import GIT_USER
 WANDB_AVAILABLE = False
 try:
     WANDB_AVAILABLE = True
@@ -169,10 +169,32 @@ def run_experiment(nb_epochs, batch_size, learning_rate, model_name):
     solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
     solution.to_csv('submission.csv', index=False)
 
+def configure_experiment(name_exp: str, nb_epochs: int, batch_size: int, learning_rate: float, model_name: str, scheduler: str, graph_pooling: str, graph_model: str, text_model: str, with_attention_pooling: bool, with_lora: bool, comment: str) -> dict:
+    cfg = {
+    'who': GIT_USER,
+    'name_exp': name_exp,
+    'nb_epochs': nb_epochs,
+    'batch_size': batch_size,
+    'learning_rate': learning_rate,
+    'num_node_features': 300,
+    'nout':  768,
+    'nhid': 300,
+    'graph_hidden_channels': 300,
+    'nhead_graph': 20,
+    'with_attention_pooling':True,
+    'with_lora':True,
+    'text_model':'Roberta',
+    'scheduler':'cosine',
+    'graph_pooling':'maxpooling',
+    'graph_model':'GAT 4 layers',
+    'comment': '',
+    }
+    return cfg
+
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args(sys.argv[1:])
     if not WANDB_AVAILABLE:
         args.no_wandb = True
-    
+    cfg = configure_experiment(name_exp="baseline", nb_epochs=5, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased', scheduler='cosine', graph_pooling='maxpooling', graph_model='GAT 4 layers', text_model='Roberta', with_attention_pooling=True, with_lora=True, comment='I run with ...')
     run_experiment(nb_epochs=5, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased')
