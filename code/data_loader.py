@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import DataLoader, Dataset
-from shared import TRAIN, VALIDATION, TEST, DATALOADER, BATCH_SIZE
+from .shared import TRAIN, VALIDATION, TEST, DATALOADER, BATCH_SIZE
 from typing import List
 
 

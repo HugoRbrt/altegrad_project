@@ -4,14 +4,15 @@ from typing import Optional
 import torch
 import logging
 from pathlib import Path
+import wandb
 import json
 from tqdm import tqdm
-from shared import (
+from .shared import (
     ROOT_DIR, OUTPUT_FOLDER_NAME,
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST,
 )
-from code import get_experiment_config, get_training_content
+from .experiments import get_experiment_config, get_training_content
 WANDB_AVAILABLE = False
 try:
     WANDB_AVAILABLE = True
@@ -75,7 +76,6 @@ def train(config: dict, output_dir: Path, device: str = "cuda", wandb_flag: bool
     model, optimizer, dl_dict = get_training_content(config, device=device)
     model.to(device)
     if wandb_flag:
-        import wandb
         wandb.init(
             project="mva-pepites",
             name=config[NAME],
