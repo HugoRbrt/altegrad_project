@@ -6,8 +6,8 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     '0':{  
         'who': GIT_USER,
-        'name_exp': "Config repo 1",
-        'nb_epochs': 1,
+        'name_exp': "Baseline",
+        'nb_epochs': 5,
         'batch_size': 32,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
@@ -19,10 +19,10 @@ CFG_EXPERIMENTS = {
     },
     '1':{  
         'who': GIT_USER,
-        'name_exp': "Config repo 2",
-        'nb_epochs': 1,
-        'batch_size': 16,
-        'learning_rate': 2e-5,
+        'name_exp': "Baseline + high learning_rate",
+        'nb_epochs': 5,
+        'batch_size': 32,
+        'learning_rate': 1e-4,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,

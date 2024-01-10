@@ -108,8 +108,8 @@ def main(argv):
     with open(kernel_path/"kernel-metadata.json", "w") as f:
         json.dump(config, f, indent=4)
 
-    if args.push:
-        kaggle.api.kernels_push_cli(str(kernel_path))
+    #if args.push:
+    kaggle.api.kernels_push_cli(str(kernel_path))
 
 
 if __name__ == '__main__':
