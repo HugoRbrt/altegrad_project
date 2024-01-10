@@ -38,8 +38,8 @@ if __name__ == "__main__":
         args.no_wandb = True
     exp_id = args.exp[0]
     print(exp_id)
-    print(cfg.keys())
-    assert exp_id in cfg.keys(), f"Experiment {exp_id} not found in configuration.py"
+    print(list(cfg.keys()))
+    assert exp_id in list(cfg.keys()), f"Experiment {exp_id} not found in configuration.py"
     print("running experiment {}".format(exp_id))
     print(cfg[exp_id])
     run_experiment(cfg[exp_id], cpu=args.cpu, no_wandb=args.no_wandb)
