@@ -36,9 +36,10 @@ if __name__ == "__main__":
     args = parser.parse_args(sys.argv[1:])
     if not WANDB_AVAILABLE:
         args.no_wandb = True
-    print(args.exp)
+    exp_id = args.exp[0]
+    print(exp_id)
     print(cfg.keys())
-    assert args.exp in cfg.keys(), f"Experiment {args.exp} not found in configuration.py"
-    print("running experiment {}".format(args.exp))
-    print(cfg[args.exp])
-    run_experiment(cfg[args.exp], cpu=args.cpu, no_wandb=args.no_wandb)
+    assert exp_id in cfg.keys(), f"Experiment {exp_id} not found in configuration.py"
+    print("running experiment {}".format(exp_id))
+    print(cfg[exp_id])
+    run_experiment(cfg[exp_id], cpu=args.cpu, no_wandb=args.no_wandb)
