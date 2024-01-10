@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
-        'name_exp': "sumpooling + MFConv",
+        'name_exp': "maxpooling + GATv2Conv",
         'nb_epochs': 10,
         'batch_size': 32,
         'learning_rate': 2e-5,
