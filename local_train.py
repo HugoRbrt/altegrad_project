@@ -37,8 +37,6 @@ if __name__ == "__main__":
     if not WANDB_AVAILABLE:
         args.no_wandb = True
     exp_id = args.exp[0]
-    print(exp_id)
-    print(list(cfg.keys()))
     assert exp_id in list(cfg.keys()), f"Experiment {exp_id} not found in configuration.py"
     print("running experiment {}".format(exp_id))
     print(cfg[exp_id])
