@@ -1,5 +1,5 @@
-from model import Model
-from data_loader import GraphTextDataset, GraphDataset, TextDataset
+from .model import Model
+from .data_loader import GraphTextDataset, GraphDataset, TextDataset
 from torch import optim
 from sklearn.metrics.pairwise import cosine_similarity
 import time
