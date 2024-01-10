@@ -4,7 +4,7 @@ GIT_REPO = "altegrad_project"  # Your current git repo
 # Keep free unless you need to acess kaggle datasets. You'll need to modify the remote_training_template.ipynb.
 KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
-    '0':{  
+    0:{  
         'who': GIT_USER,
         'name_exp': "Baseline",
         'nb_epochs': 5,
@@ -17,7 +17,7 @@ CFG_EXPERIMENTS = {
         'graph_hidden_channels': 300,
         'comment': '',
     },
-    '1':{  
+    1:{  
         'who': GIT_USER,
         'name_exp': "Baseline + high learning_rate",
         'nb_epochs': 5,
