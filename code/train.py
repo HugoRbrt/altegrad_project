@@ -35,6 +35,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     if not no_wandb:
         run = wandb.init(
         project="text2mol",
+        entity='team-nlpls'
         name=cfg['name_exp'],
         config=cfg,
         )
@@ -115,7 +116,9 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
         if not no_wandb:
             wandb.log({
-                "epoch/val": i, 'loss/val':  val_loss/len(val_loader),
+                'epoch/val': i,
+                'loss/val':  val_loss/len(val_loader),
+                'accuract/val': 0,
             })
         if best_validation_loss==val_loss:
             print('validation loss improved saving checkpoint...')
