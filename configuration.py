@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
         'name_exp': "Baseline",
-        'nb_epochs': 5,
+        'nb_epochs': 20,
         'batch_size': 32,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
