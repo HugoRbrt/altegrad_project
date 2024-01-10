@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, MFConv
+from torch_geometric.nn import GCNConv, MFConv, AttentiveFP
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
 
@@ -12,10 +12,10 @@ class GraphEncoder(nn.Module):
         self.nout = nout
         self.relu = nn.ReLU()
         self.ln = nn.LayerNorm((nout))
-        self.conv1 = MFConv(num_node_features, graph_hidden_channels)
-        self.conv2 = MFConv(graph_hidden_channels, graph_hidden_channels)
-        self.conv3 = MFConv(graph_hidden_channels, graph_hidden_channels)
-        self.mol_hidden1 = nn.Linear(graph_hidden_channels, nhid)
+        self.conv1 = AttentiveFP(num_node_features, graph_hidden_channels, graph_hidden_channels)
+        self.conv2 = AttentiveFP(graph_hidden_channels, graph_hidden_channels, graph_hidden_channels)
+        self.conv3 = AttentiveFP(graph_hidden_channels, graph_hidden_channels, graph_hidden_channels)
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels, graph_hidden_channels, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch):
