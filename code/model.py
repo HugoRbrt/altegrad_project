@@ -33,21 +33,44 @@ class GraphEncoder(nn.Module):
         x = self.mol_hidden2(x)
         return x
     
+class AttentionPooling(nn.Module):
+    def __init__(self, hidden_dim):
+        super(AttentionPooling, self).__init__()
+        # Define a linear layer to learn the attention weights
+        self.attention_weights = nn.Linear(hidden_dim, 1)
+
+    def forward(self, encoded_states):
+        # Compute attention scores
+        # encoded_states shape: (batch_size, sequence_length, hidden_dim)
+        attention_scores = self.attention_weights(encoded_states)
+        
+        # Apply softmax to get probabilities (shape: batch_size, sequence_length, 1)
+        attention_probs = F.softmax(attention_scores, dim=1)
+
+        # Multiply each hidden state with the attention weights and sum them
+        # Use torch.bmm for batch matrix multiplication
+        pooled_output = torch.bmm(torch.transpose(encoded_states, 1, 2), attention_probs).squeeze(2)
+        return pooled_output
+    
 class TextEncoder(nn.Module):
-    def __init__(self, model_name):
+    def __init__(self, model_name, hidden_dim):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(model_name)
+        self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
         #print(encoded_text.last_hidden_state.size())
-        return encoded_text.last_hidden_state[:,0,:]
+        pooled_output = self.attentionpooling(encoded_text.last_hidden_state)       
+
+        # Apply attention pooling
+        return pooled_output
     
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
         self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads)
-        self.text_encoder = TextEncoder(model_name)
+        self.text_encoder = TextEncoder(model_name, hidden_dim)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
