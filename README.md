@@ -9,6 +9,7 @@
 - custom your model/dataloader/training in /code folder (the configuration variable 'cfg' corresponds to CFG_EXPERIMENTS configuration.py)
 - run the terminal command `python remote_training.py --user user0 --branch your_branch_name` and replace the given options
 Note: by running this command, you will execute the function `run_experiment` in code/train.py for each configuration given in `CFG_EXPERIMENT` of configuration.py file.
+- You can also add the option `--nowandb` to avoir logs in wandb (usefull for local tests)
 
 # First time: 
 
