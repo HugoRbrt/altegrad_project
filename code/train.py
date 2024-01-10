@@ -94,7 +94,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                                                             time2 - time1, loss/printEvery))
                 if not no_wandb:
                     wandb.log({
-                        "epoch": i, 'loss/train': loss/printEvery,
+                        "epoch/train": i, 'loss/train': loss/printEvery,
                     })
                 losses.append(loss)
                 loss = 0 
@@ -115,7 +115,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
         if not no_wandb:
             wandb.log({
-                "epoch": i, 'loss/val':  str(val_loss/len(val_loader)),
+                "epoch/val": i, 'loss/val':  val_loss/len(val_loader),
             })
         if best_validation_loss==val_loss:
             print('validation loss improved saving checkpoint...')
@@ -166,11 +166,11 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     
     if not no_wandb:
         
-        submission_artifact = wandb.Artifact('submission:'+str(uuid.uuid1()), type='csv')
+        submission_artifact = wandb.Artifact('submission:'+str(uuid.uuid1()).replace("-",""), type='csv')
         submission_artifact.add_file('submission.csv')
         wandb.log_artifact(submission_artifact)
         
-        model_artifact = wandb.Artifact('model:'+str(uuid.uuid1()), type='model')
+        model_artifact = wandb.Artifact('model:'+str(uuid.uuid1()).replace("-",""), type='model')
         model_artifact.add_file(save_path)
         wandb.log_artifact(model_artifact)
         wandb.finish()

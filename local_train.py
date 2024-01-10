@@ -12,6 +12,7 @@ from shared import (
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST,
 )
+from configuration import CFG_EXPERIMENTS as cfg
 WANDB_AVAILABLE = False
 try:
     WANDB_AVAILABLE = True
@@ -30,28 +31,12 @@ def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.Arg
     parser.add_argument("--cpu", action="store_true", help="Force CPU")
     return parser
 
-def configure_experiment(name_exp: str, nb_epochs: int, batch_size: int, learning_rate: float, model_name: str, scheduler: str, graph_pooling: str, graph_model: str, text_model: str, with_attention_pooling: bool, with_lora: bool, comment: str) -> dict:
-    cfg = {
-    'who': GIT_USER,
-    'name_exp': name_exp,
-    'nb_epochs': nb_epochs,
-    'batch_size': batch_size,
-    'learning_rate': learning_rate,
-    'model_name': model_name,
-    'num_node_features': 300,
-    'nout':  768,
-    'nhid': 300,
-    'graph_hidden_channels': 300,
-    'comment': '',
-    }
-    return cfg
-
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args(sys.argv[1:])
     args.exp = uuid.uuid4().int
     if not WANDB_AVAILABLE:
         args.no_wandb = True
-    #do it for each experiments:
-    cfg = configure_experiment(name_exp="baseline", nb_epochs=1, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased', scheduler='cosine', graph_pooling='maxpooling', graph_model='GAT 4 layers', text_model='Roberta', with_attention_pooling=True, with_lora=True, comment='I run with ...')
-    run_experiment(cfg, cpu=args.cpu, no_wandb=args.no_wandb)
+    for key in cfg.keys():
+        print("running experiment {}".format(key))
+        run_experiment(cfg[key], cpu=args.cpu, no_wandb=args.no_wandb)
