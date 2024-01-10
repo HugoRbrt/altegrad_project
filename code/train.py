@@ -56,6 +56,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
 
     model = Model(model_name=model_name, num_node_features=cfg['num_node_features'], nout=cfg['nout'], nhid=cfg['nhid'], graph_hidden_channels=cfg['graph_hidden_channels']) # nout = bert model hidden dim
     model.to(device)
+    print(model)
 
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
