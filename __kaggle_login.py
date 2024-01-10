@@ -3,8 +3,8 @@ kaggle_users = {
         "username":"baptistecallard",
         "key":"3402005399f441481fd1e7502316d267"
     },
-#     "hugo_gmail": {
-#         "username": "hugorbrt92",
-#         "key": "4e77414ff73f1943241e4769692834d2"
-#     },
+    "bapt_2": {
+        "username": "azertuioup",
+        "key": "9a85c3ad5d6bc14113197cf306f73c0c"
+    },
 }
