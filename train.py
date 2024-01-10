@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 import wandb
 import json
+import uuid
 from tqdm import tqdm
 from torch_geometric.data import DataLoader
 from torch.utils.data import DataLoader as TorchDataLoader
@@ -206,11 +207,12 @@ def run_experiment(cfg, args):
     solution.to_csv('submission.csv', index=False)
     
     if not args.no_wandb:
-        submission_artifact = wandb.Artifact('submission', type='results')
+        
+        submission_artifact = wandb.Artifact('submission:'+str(uuid.uuid1()), type='csv')
         submission_artifact.add_file('submission.csv')
         wandb.log_artifact(submission_artifact)
         
-        model_artifact = wandb.Artifact('model', type='model')
+        model_artifact = wandb.Artifact('model:'+str(uuid.uuid1()), type='model')
         model_artifact.add_file(save_path)
         wandb.log_artifact(model_artifact)
         wandb.finish()
