@@ -35,7 +35,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     if not no_wandb:
         run = wandb.init(
         project="text2mol",
-        entity='team-nlpls'
+        entity='team-nlpls',
         name=cfg['name_exp'],
         config=cfg,
         )
