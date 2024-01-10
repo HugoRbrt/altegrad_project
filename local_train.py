@@ -34,10 +34,9 @@ def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.Arg
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args(sys.argv[1:])
-    args.exp = uuid.uuid4().int
     if not WANDB_AVAILABLE:
         args.no_wandb = True
-    for key in cfg.keys():
-        print("running experiment {}".format(key))
-        print(cfg[key])
-        run_experiment(cfg[key], cpu=args.cpu, no_wandb=args.no_wandb)
+    assert args.exp in cfg.keys(), f"Experiment {args.exp} not found in configuration.py"
+    print("running experiment {}".format(args.exp))
+    print(cfg[args.exp])
+    run_experiment(cfg[args.exp], cpu=args.cpu, no_wandb=args.no_wandb)

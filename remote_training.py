@@ -13,7 +13,7 @@ import subprocess
 from shared import ROOT_DIR, OUTPUT_FOLDER_NAME
 from local_train import get_parser as get_train_parser
 from typing import Optional
-from configuration import KAGGLE_DATASET_LIST, NB_ID, GIT_USER, GIT_REPO
+from configuration import KAGGLE_DATASET_LIST, NB_ID, GIT_USER, GIT_REPO, CFG_EXPERIMENTS
 
 
 def get_git_branch_name():
@@ -67,49 +67,43 @@ def main(argv):
     parser.add_argument("-d", "--download", action="store_true", help="Download results")
     get_train_parser(parser)
     args = parser.parse_args(argv)
-    nb_id = args.nb_id
-    exp_str = "_0"
-    kaggle_user = kaggle_users[args.user]
-    uname_kaggle = kaggle_user["username"]
-    kaggle.api._load_config(kaggle_user)
-    if args.download:
-        tmp_dir = ROOT_DIR/f"__tmp_{exp_str}"
-        tmp_dir.mkdir(exist_ok=True, parents=True)
-        kaggle.api.kernels_output_cli(f"{kaggle_user['username']}/{nb_id}", path=str(tmp_dir))
-        subprocess.run(["tar", "-xzf", tmp_dir/"output.tgz", OUTPUT_FOLDER_NAME])
-        # @FIXME: windows probably does not have tar command
-        import shutil
-        shutil.rmtree(tmp_dir, ignore_errors=True)
-        return
-    kernel_root = ROOT_DIR/f"__nb_{uname_kaggle}"
-    kernel_root.mkdir(exist_ok=True, parents=True)
+    experiments_id = CFG_EXPERIMENTS.keys()
+    for exp_id in experiments_id:
+        # we push a notebook for each experiments in order to run them in parallel
+        nb_id = args.nb_id
+        exp_str = "_0"
+        kaggle_user = kaggle_users[args.user]
+        uname_kaggle = kaggle_user["username"]
+        kaggle.api._load_config(kaggle_user)
+        kernel_root = ROOT_DIR/f"__nb_{uname_kaggle}"
+        kernel_root.mkdir(exist_ok=True, parents=True)
 
-    kernel_path = kernel_root/exp_str
-    kernel_path.mkdir(exist_ok=True, parents=True)
-    branch = args.branch
-    config = {
-        "id": str(PurePosixPath(f"{kaggle_user['username']}")/nb_id),
-        "title": nb_id.lower(),
-        "code_file": f"{nb_id}.ipynb",
-        "language": "python",
-        "kernel_type": "notebook",
-        "is_private": "true",
-        "enable_gpu": "true" if not args.cpu else "false",
-        "enable_tpu": "false",
-        "enable_internet": "true",
-        "dataset_sources": KAGGLE_DATASET_LIST,
-        "competition_sources": [],
-        "kernel_sources": [],
-        "model_sources": []
-    }
-    prepare_notebook((kernel_path/nb_id).with_suffix(".ipynb"), args.exp, branch,
-                     git_user=GIT_USER, git_repo=GIT_REPO, wandb_flag=not args.no_wandb)
-    assert (kernel_path/nb_id).with_suffix(".ipynb").exists()
-    with open(kernel_path/"kernel-metadata.json", "w") as f:
-        json.dump(config, f, indent=4)
+        kernel_path = kernel_root/exp_str
+        kernel_path.mkdir(exist_ok=True, parents=True)
+        branch = args.branch
+        config = {
+            "id": str(PurePosixPath(f"{kaggle_user['username']}")/nb_id),
+            "title": nb_id.lower(),
+            "code_file": f"{nb_id}.ipynb",
+            "language": "python",
+            "kernel_type": "notebook",
+            "is_private": "true",
+            "enable_gpu": "true" if not args.cpu else "false",
+            "enable_tpu": "false",
+            "enable_internet": "true",
+            "dataset_sources": KAGGLE_DATASET_LIST,
+            "competition_sources": [],
+            "kernel_sources": [],
+            "model_sources": []
+        }
+        prepare_notebook((kernel_path/nb_id).with_suffix(".ipynb"), exp_id, branch,
+                        git_user=GIT_USER, git_repo=GIT_REPO, wandb_flag=not args.no_wandb)
+        assert (kernel_path/nb_id).with_suffix(".ipynb").exists()
+        with open(kernel_path/"kernel-metadata.json", "w") as f:
+            json.dump(config, f, indent=4)
 
-    #if args.push:
-    kaggle.api.kernels_push_cli(str(kernel_path))
+        #if args.push:
+        kaggle.api.kernels_push_cli(str(kernel_path))
 
 
 if __name__ == '__main__':
