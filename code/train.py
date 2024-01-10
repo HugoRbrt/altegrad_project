@@ -1,38 +1,18 @@
-import sys
-import argparse
-from typing import Optional
-import torch
-import logging
-from pathlib import Path
-import wandb
-import json
-import uuid
-from tqdm import tqdm
-from torch_geometric.data import DataLoader
-from torch.utils.data import DataLoader as TorchDataLoader
-import numpy as np
-from transformers import AutoTokenizer
-import torch
+from model import Model
+from data_loader import GraphTextDataset, GraphDataset, TextDataset
 from torch import optim
 from sklearn.metrics.pairwise import cosine_similarity
 import time
+from torch_geometric.data import DataLoader
+import wandb
+import torch
+import uuid
 import os
 import pandas as pd
-from data_loader import GraphTextDataset, GraphDataset, TextDataset
-from model import Model
-from configuration import GIT_USER
-from shared import (
-    ROOT_DIR, OUTPUT_FOLDER_NAME,
-    ID, NAME, NB_EPOCHS,
-    TRAIN, VALIDATION, TEST,
-)
-WANDB_AVAILABLE = False
-try:
-    WANDB_AVAILABLE = True
-    import wandb
-except ImportError:
-    logging.warning("Could not import wandb. Disabling wandb.")
-    pass
+from torch.utils.data import DataLoader as TorchDataLoader
+import numpy as np
+from transformers import AutoTokenizer
+
 
 CE = torch.nn.CrossEntropyLoss()
 
@@ -41,40 +21,18 @@ def contrastive_loss(v1, v2):
     labels = torch.arange(logits.shape[0], device=v1.device)
     return CE(logits, labels) + CE(torch.transpose(logits, 0, 1), labels)
 
-def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.ArgumentParser:
-    if parser is None:
-        parser = argparse.ArgumentParser(description="Train a model")
-    parser.add_argument("-e", "--exp", nargs="+", type=int, required=True, help="Experiment id")
-    parser.add_argument("-o", "--output-dir", type=str, default=ROOT_DIR/OUTPUT_FOLDER_NAME, help="Output directory")
-    parser.add_argument("-nowb", "--no-wandb", action="store_true", help="Disable weights and biases")
-    parser.add_argument("--cpu", action="store_true", help="Force CPU")
-    return parser
 
-def configure_experiment(name_exp: str, nb_epochs: int, batch_size: int, learning_rate: float, model_name: str, scheduler: str, graph_pooling: str, graph_model: str, text_model: str, with_attention_pooling: bool, with_lora: bool, comment: str) -> dict:
-    cfg = {
-    'who': GIT_USER,
-    'name_exp': name_exp,
-    'nb_epochs': nb_epochs,
-    'batch_size': batch_size,
-    'learning_rate': learning_rate,
-    'model_name': model_name,
-    'num_node_features': 300,
-    'nout':  768,
-    'nhid': 300,
-    'graph_hidden_channels': 300,
-    'nhead_graph': 20,
-    'with_attention_pooling':True,
-    'with_lora':True,
-    'text_model':'Roberta',
-    'scheduler':'cosine',
-    'graph_pooling':'maxpooling',
-    'graph_model':'GAT 4 layers',
-    'comment': '',
-    }
-    return cfg
+def run_experiment(cfg, cpu=False, no_wandb=False):
+    """this function allows to run an experiments with the given configuration in cfg
+    (see local_train.py->configure_experiment for the format of cfg)
+    You can add configurations possibilities in the cfg
 
-def run_experiment(cfg, args):
-    if not args.no_wandb:
+    Args:
+        cfg (dict): contains all informations to run the experiments
+        cpu (bool, optional): if True, force CPU. Defaults to False.
+        no_wandb (bool, optional): if True, disable wandb. Defaults to False.
+    """
+    if not no_wandb:
         run = wandb.init(
         project="text2mol",
         name=cfg['name_exp'],
@@ -90,12 +48,12 @@ def run_experiment(cfg, args):
     val_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
     train_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)
 
-    device = "cpu" if args.cpu else ("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cpu" if cpu else ("cuda" if torch.cuda.is_available() else "cpu")
 
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    model = Model(model_name=model_name, num_node_features=300, nout=768, nhid=300, graph_hidden_channels=300) # nout = bert model hidden dim
+    model = Model(model_name=model_name, num_node_features=cfg['num_node_features'], nout=cfg['nout'], nhid=cfg['nhid'], graph_hidden_channels=cfg['graph_hidden_channels']) # nout = bert model hidden dim
     model.to(device)
 
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
@@ -134,7 +92,7 @@ def run_experiment(cfg, args):
                 time2 = time.time()
                 print("Iteration: {0}, Time: {1:.4f} s, training loss: {2:.4f}".format(count_iter,
                                                                             time2 - time1, loss/printEvery))
-                if not args.no_wandb:
+                if not no_wandb:
                     wandb.log({
                         "epoch": i, 'loss/train': loss/printEvery,
                     })
@@ -155,7 +113,7 @@ def run_experiment(cfg, args):
             val_loss += current_loss.item()
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
-        if not args.no_wandb:
+        if not no_wandb:
             wandb.log({
                 "epoch": i, 'loss/val':  str(val_loss/len(val_loader)),
             })
@@ -206,7 +164,7 @@ def run_experiment(cfg, args):
     solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
     solution.to_csv('submission.csv', index=False)
     
-    if not args.no_wandb:
+    if not no_wandb:
         
         submission_artifact = wandb.Artifact('submission:'+str(uuid.uuid1()), type='csv')
         submission_artifact.add_file('submission.csv')
@@ -216,13 +174,3 @@ def run_experiment(cfg, args):
         model_artifact.add_file(save_path)
         wandb.log_artifact(model_artifact)
         wandb.finish()
-
-if __name__ == "__main__":
-    parser = get_parser()
-    args = parser.parse_args(sys.argv[1:])
-    if not WANDB_AVAILABLE:
-        args.no_wandb = True
-    #do it for each experiments:
-    cfg = configure_experiment(name_exp="baseline", nb_epochs=1, batch_size=32, learning_rate=2e-5, model_name='distilbert-base-uncased', scheduler='cosine', graph_pooling='maxpooling', graph_model='GAT 4 layers', text_model='Roberta', with_attention_pooling=True, with_lora=True, comment='I run with ...')
-    run_experiment(cfg, args)
-    #and you can redo another one
