@@ -2,6 +2,7 @@ import sys
 import argparse
 from typing import Optional
 import torch
+import uuid
 import logging
 from pathlib import Path
 import torch
@@ -23,7 +24,7 @@ from code import run_experiment
 def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.ArgumentParser:
     if parser is None:
         parser = argparse.ArgumentParser(description="Train a model")
-    parser.add_argument("-e", "--exp", nargs="+", type=int, required=True, help="Experiment id")
+    parser.add_argument("-e", "--exp", nargs="+", type=int, help="Experiment id")
     parser.add_argument("-o", "--output-dir", type=str, default=ROOT_DIR/OUTPUT_FOLDER_NAME, help="Output directory")
     parser.add_argument("-nowb", "--no-wandb", action="store_true", help="Disable weights and biases")
     parser.add_argument("--cpu", action="store_true", help="Force CPU")
@@ -48,6 +49,7 @@ def configure_experiment(name_exp: str, nb_epochs: int, batch_size: int, learnin
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args(sys.argv[1:])
+    args.exp = uuid.uuid4().int
     if not WANDB_AVAILABLE:
         args.no_wandb = True
     #do it for each experiments:
