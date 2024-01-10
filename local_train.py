@@ -39,4 +39,5 @@ if __name__ == "__main__":
         args.no_wandb = True
     for key in cfg.keys():
         print("running experiment {}".format(key))
+        print(cfg[key])
         run_experiment(cfg[key], cpu=args.cpu, no_wandb=args.no_wandb)
