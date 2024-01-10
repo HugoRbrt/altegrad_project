@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv
-from torch_geometric.nn import global_mean_pool, global_max_pool, global_sum_pool
+from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
 
 class GraphEncoder(nn.Module):
