@@ -6,8 +6,8 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
-        'name_exp': "test_bpt",
-        'nb_epochs': 5,
+        'name_exp': "maxpooling + MFConv",
+        'nb_epochs': 10,
         'batch_size': 32,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
