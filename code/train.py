@@ -140,7 +140,13 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
 
-
+    print('Loading in wanddb')
+    
+    if not no_wandb:        
+        model_artifact = wandb.Artifact('model'+str(uuid.uuid1()).replace("-",""), type='model')
+        model_artifact.add_file(save_path)
+        wandb.log_artifact(model_artifact)
+        
     print('loading best model...')
     checkpoint = torch.load(save_path)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -172,10 +178,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     solution.to_csv('submission.csv', index=False)
     
     if not no_wandb:
-        
-        submission_artifact = wandb.Artifact('submission'+str(uuid.uuid1()).replace("-",""), type='csv')
-        submission_artifact.add_file('submission.csv')
-        wandb.log_artifact(submission_artifact)
         
         model_artifact = wandb.Artifact('model'+str(uuid.uuid1()).replace("-",""), type='model')
         model_artifact.add_file(save_path)
