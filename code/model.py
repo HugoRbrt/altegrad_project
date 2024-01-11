@@ -23,7 +23,7 @@ class MLPModel(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         
-        x = self.relu(self.mol_hidden1(graph_batch))
+        x = self.relu(self.mol_hidden1(x))
         x = self.relu(self.mol_hidden2(x))
         x = self.mol_hidden3(x)
         x = self.ln(x)
