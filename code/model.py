@@ -6,7 +6,7 @@ from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
 
 class MLPModel(nn.Module):
-    def __init__(self, nout, nhid):
+    def __init__(self, num_node_features, nout, nhid):
         super(MLPModel, self).__init__()
         self.nhid = nhid
         self.nout = nout
@@ -14,7 +14,7 @@ class MLPModel(nn.Module):
         self.ln = nn.LayerNorm((nout))
         self.temp = nn.Parameter(torch.Tensor([0.07]))
         self.register_parameter( 'temp' , self.temp )
-        self.mol_hidden1 = nn.Linear(nout, nhid)
+        self.mol_hidden1 = nn.Linear(num_node_features, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nhid)
         self.mol_hidden3 = nn.Linear(nhid, nout)
 
@@ -108,7 +108,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         # self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads)
         self.graph_encoder = MLPModel(nout, nhid)
-        self.text_encoder = TextEncoder(model_name, nout)
+        self.text_encoder = TextEncoder(num_node_features, model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
