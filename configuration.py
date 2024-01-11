@@ -6,10 +6,10 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
-        'name_exp': "maxpooling + GATv2Conv(3) + distilbert-base-cased",
+        'name_exp': "maxpooling + GATv2Conv(3) + skip + allenai/scibert_scivocab_uncased",
         'scheduler': 'CosineAnnealingLR',
         'nb_epochs': 20,
-        'batch_size': 24,
+        'batch_size': 16,
         'learning_rate': 2e-5,
         'model_name': 'allenai/scibert_scivocab_uncased',
         'num_node_features': 300,
