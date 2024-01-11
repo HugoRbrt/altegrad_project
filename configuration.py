@@ -6,10 +6,10 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
-        'name_exp': "maxpooling + GATv2Conv (3) + skip attention",
+        'name_exp': "maxpooling + GATv2Conv (3) + AttentionPooling",
         'scheduler': 'CosineAnnealingLR',
         'nb_epochs': 15,
-        'batch_size': 24,
+        'batch_size': 20,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,

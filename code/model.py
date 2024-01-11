@@ -26,44 +26,67 @@ class GraphEncoder(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         x1 = self.conv1(x, edge_index)
-        skip_x = self.skip_1(x)  # Prepare skip connection
-        x = skip_x + x1  # Apply skip connection
-        x = self.relu(x)
+        # skip_x = self.skip_1(x)  # Prepare skip connection
+        # x = skip_x + x1  # Apply skip connection
+        x = self.relu(x1)
         
         x2 = self.conv2(x, edge_index)
-        skip_x = self.skip_2(x)  # Prepare skip connection
-        x = skip_x + x2  # Apply skip connection
-        x = self.relu(x)
+        # skip_x = self.skip_2(x)  # Prepare skip connection
+        # x = skip_x + x2  # Apply skip connection
+        x = self.relu(x2)
         
         x3 = self.conv3(x, edge_index)
-        skip_x = self.skip_3(x)  # Prepare skip connection
-        x = skip_x + x3  # Apply skip connection
-        x = self.relu(x)
+        # skip_x = self.skip_3(x)  # Prepare skip connection
+        # x = skip_x + x3  # Apply skip connection
+        x = self.relu(x3)
         
         x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x
+
+class AttentionPooling(nn.Module):
+    def __init__(self, hidden_dim):
+        super(AttentionPooling, self).__init__()
+        # Define a linear layer to learn the attention weights
+        self.attention_weights = nn.Linear(hidden_dim, 1)
+
+    def forward(self, encoded_states):
+        # Compute attention scores
+        # encoded_states shape: (batch_size, sequence_length, hidden_dim)
+        attention_scores = self.attention_weights(encoded_states)
+        
+        # Apply softmax to get probabilities (shape: batch_size, sequence_length, 1)
+        attention_probs = F.softmax(attention_scores, dim=1)
+
+        # Multiply each hidden state with the attention weights and sum them
+        # Use torch.bmm for batch matrix multiplication
+        pooled_output = torch.bmm(torch.transpose(encoded_states, 1, 2), attention_probs).squeeze(2)
+        return pooled_output
     
 class TextEncoder(nn.Module):
-    def __init__(self, model_name):
+    def __init__(self, model_name, hidden_dim):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(model_name)
+        self.attention_pool = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
         #print(encoded_text.last_hidden_state.size())
-        return encoded_text.last_hidden_state[:,0,:]
+        pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
+        return pooled_output   
+        # return encoded_text.last_hidden_state[:,0,:]
     
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
         self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads)
-        self.text_encoder = TextEncoder(model_name)
+        self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
         text_encoded = self.text_encoder(input_ids, attention_mask)
+        
         return graph_encoded, text_encoded
     
     def get_text_encoder(self):
