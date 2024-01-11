@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv
-from torch_geometric.nn import global_mean_pool, global_max_pool, global_add_pool
+from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
 
 class GraphEncoder(nn.Module):
@@ -27,21 +27,21 @@ class GraphEncoder(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         x1 = self.conv1(x, edge_index)
-        # skip_x = self.skip_1(x)  # Prepare skip connection
-        # x = skip_x + x1  # Apply skip connection
-        x = self.relu(x1)
+        skip_x = self.skip_1(x)  # Prepare skip connection
+        x = skip_x + x1  # Apply skip connection
+        x = self.relu(x)
         
         x2 = self.conv2(x, edge_index)
-        # skip_x = self.skip_2(x)  # Prepare skip connection
-        # x = skip_x + x2  # Apply skip connection
-        x = self.relu(x2)
+        skip_x = self.skip_2(x)  # Prepare skip connection
+        x = skip_x + x2  # Apply skip connection
+        x = self.relu(x)
         
         x3 = self.conv3(x, edge_index)
-        # skip_x = self.skip_3(x)  # Prepare skip connection
-        # x = skip_x + x3  # Apply skip connection
-        x = self.relu(x3)
+        skip_x = self.skip_3(x)  # Prepare skip connection
+        x = skip_x + x3  # Apply skip connection
+        x = self.relu(x)
         
-        x = global_add_pool(x, batch)
+        x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x
