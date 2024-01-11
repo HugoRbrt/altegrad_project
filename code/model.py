@@ -69,7 +69,7 @@ class TextEncoder(nn.Module):
     def __init__(self, model_name, hidden_dim):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(model_name)
-        self.attention_pool = AttentionPooling(hidden_dim)
+        self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
