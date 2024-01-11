@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv
-from torch_geometric.nn import global_mean_pool, global_max_pool
+from torch_geometric.nn import global_mean_pool, global_max_pool, global_add_pool
 from transformers import AutoModel
 
 class GraphEncoder(nn.Module):
@@ -41,7 +41,7 @@ class GraphEncoder(nn.Module):
         # x = skip_x + x3  # Apply skip connection
         x = self.relu(x3)
         
-        x = global_max_pool(x, batch)
+        x = global_add_pool(x, batch)
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x
@@ -69,14 +69,14 @@ class TextEncoder(nn.Module):
     def __init__(self, model_name, hidden_dim):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(model_name)
-        self.attentionpooling = AttentionPooling(hidden_dim)
+        # self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
         #print(encoded_text.last_hidden_state.size())
-        pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
-        return pooled_output   
-        # return encoded_text.last_hidden_state[:,0,:]
+        # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
+        # return pooled_output   
+        return encoded_text.last_hidden_state[:,0,:]
     
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
