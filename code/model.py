@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, MFConv, GATv2Conv
+from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, FusedGATConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
 
@@ -12,11 +12,11 @@ class GraphEncoder(nn.Module):
         self.nout = nout
         self.relu = nn.ReLU()
         self.ln = nn.LayerNorm((nout))
-        self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
+        self.conv1 = FusedGATConv(num_node_features, graph_hidden_channels, heads=heads)
         self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
-        self.conv2 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
+        self.conv2 = FusedGATConv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
         self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
-        self.conv3 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
+        self.conv3 = FusedGATConv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
         self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
@@ -27,19 +27,19 @@ class GraphEncoder(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         x1 = self.conv1(x, edge_index)
-        skip_x = self.skip_1(x)  # Prepare skip connection
-        x = skip_x + x1  # Apply skip connection
-        x = self.relu(x)
+        # skip_x = self.skip_1(x)  # Prepare skip connection
+        # x = skip_x + x1  # Apply skip connection
+        x = self.relu(x1)
         
         x2 = self.conv2(x, edge_index)
-        skip_x = self.skip_2(x)  # Prepare skip connection
-        x = skip_x + x2  # Apply skip connection
-        x = self.relu(x)
+        # skip_x = self.skip_2(x)  # Prepare skip connection
+        # x = skip_x + x2  # Apply skip connection
+        x = self.relu(x2)
         
         x3 = self.conv3(x, edge_index)
-        skip_x = self.skip_3(x)  # Prepare skip connection
-        x = skip_x + x3  # Apply skip connection
-        x = self.relu(x)
+        # skip_x = self.skip_3(x)  # Prepare skip connection
+        # x = skip_x + x3  # Apply skip connection
+        x = self.relu(x3)
         
         x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()

@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
-        'name_exp': "maxpooling + GATv2Conv (3) + SKip connection",
+        'name_exp': "maxpooling + FusedGATConv (3)",
         'scheduler': 'CosineAnnealingLR',
         'nb_epochs': 15,
         'batch_size': 16,
