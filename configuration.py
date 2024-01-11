@@ -6,15 +6,17 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
-        'name_exp': "Baseline for test",
-        'nb_epochs': 1,
-        'batch_size': 32,
+        'name_exp': "maxpooling + GATv2Conv (3) 20 epochs",
+        'nb_epochs': 20,
+        'batch_size': 24,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
         'nhid': 300,
+        'heads': 30,
         'graph_hidden_channels': 300,
+        'scheduler': "CosineAnnealingLR",
         'comment': '',
     },
 }
