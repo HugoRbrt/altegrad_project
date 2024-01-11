@@ -19,7 +19,7 @@ CFG_EXPERIMENTS = {
     #     'heads': 30,
     #     'comment': '',
     # },
-    1:{  
+    0:{  
         'who': 'baptiste',
         'name_exp': "maxpooling + GATv2Conv(3) + skip + allenai/scibert_scivocab_cased",
         'scheduler': 'CosineAnnealingLR',
