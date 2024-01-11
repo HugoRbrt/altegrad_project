@@ -114,7 +114,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     attention_mask.to(device))
             current_loss = contrastive_loss(x_graph, x_text)   
             val_loss += current_loss.item()
-        scheduler.step(val_loss)
+        scheduler.step()
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
         if not no_wandb:
