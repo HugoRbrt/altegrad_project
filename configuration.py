@@ -5,7 +5,7 @@ GIT_REPO = "altegrad_project"  # Your current git repo
 KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
-        'who': GIT_USER,
+        'who': "Matteo",
         'name_exp': "Baseline",
         'nb_epochs': 5,
         'batch_size': 32,
