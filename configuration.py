@@ -7,17 +7,17 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': "Matteo",
         'name_exp': "maxpooling + GATv2Conv(3) + skip + increase feature size",
-        'scheduler':'CosineAnnealingLR'
+        'scheduler':'CosineAnnealingLR',
         'nb_epochs': 15,
         'batch_size': 24,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
-        'num_node_features': 600,
+        'num_node_features': 300,
         'nout':  768,
-        'nhid': 600,
-        'graph_hidden_channels': 600,
+        'nhid': 300,
+        'graph_hidden_channels': 300,
         'heads': 20,
         'T_max': 5,
-        'comment': '',
+        'comment': 'First run with Baptiste advices',
     },
 }
