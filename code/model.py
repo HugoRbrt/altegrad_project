@@ -28,6 +28,7 @@ class MLPModel(nn.Module):
         x = self.mol_hidden3(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)
+        x = global_max_pool(x, batch)
         return x
 
 class GraphEncoder(nn.Module):
