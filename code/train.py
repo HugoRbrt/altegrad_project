@@ -54,7 +54,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    model = Model(model_name=model_name, num_node_features=cfg['num_node_features'], nout=cfg['nout'], nhid=cfg['nhid'], graph_hidden_channels=cfg['graph_hidden_channels'],heads=cfg['heads']) # nout = bert model hidden dim
+    model = Model(model_name=model_name, num_node_features=cfg['num_node_features'], nout=cfg['nout'], nhid=cfg['nhid'], graph_hidden_channels=cfg['graph_hidden_channels'],heads=cfg['heads'],dropout_rate=0.1) # nout = bert model hidden dim
     model.to(device)
     print(model)
 
@@ -62,7 +62,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
     
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg['T_max']) # BAPTADD
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg['T_max']) # BAPTADD
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
     epoch = 0
     loss = 0
@@ -103,7 +104,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 losses.append(loss)
                 loss = 0 
         model.eval()
-        scheduler.step() # BAPTADD      
+        #scheduler.step() # BAPTADD      
         val_loss = 0        
         for batch in val_loader:
             input_ids = batch.input_ids
@@ -116,6 +117,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     attention_mask.to(device))
             current_loss = contrastive_loss(x_graph, x_text)   
             val_loss += current_loss.item()
+            scheduler.step(val_loss) # ADD 
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
         if not no_wandb:

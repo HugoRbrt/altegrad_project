@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 from transformers import AutoModel
 
-from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv
+from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GraphSAGEConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 
 # class GraphEncoder(nn.Module):
@@ -40,7 +40,8 @@ class GraphEncoder(nn.Module):
         self.nout = nout
         self.relu = nn.ReLU()
         self.ln = nn.LayerNorm(nout)
-        self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
+        #self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
+        self.conv1 = GraphSAGEConv(num_node_features, graph_hidden_channels)
         self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
         self.conv2 = GATv2Conv(graph_hidden_channels* heads, graph_hidden_channels, heads=heads)
         self.skip_2 = nn.Linear(graph_hidden_channels*heads, graph_hidden_channels * heads)
@@ -75,20 +76,24 @@ class GraphEncoder(nn.Module):
         return x
     
 class TextEncoder(nn.Module):
-    def __init__(self, model_name):
+    def __init__(self, model_name, dropout_rate=0.1):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(model_name)
+        ## add
+        self.dropout = nn.Dropout(dropout_rate)
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
         #print(encoded_text.last_hidden_state.size())
+        ## add
+        encoded_text = self.dropout(encoded_text.last_hidden_state[:,0,:])
         return encoded_text.last_hidden_state[:,0,:]
     
 class Model(nn.Module):
-    def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
+    def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads,dropout_rate=0.1):
         super(Model, self).__init__()
         self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads)
-        self.text_encoder = TextEncoder(model_name)
+        self.text_encoder = TextEncoder(model_name,dropout_rate)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)

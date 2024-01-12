@@ -6,18 +6,18 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': "Matteo",
-        'name_exp': "maxpooling + GATv2Conv(3) + skip + T_MAX = 5",
+        'name_exp': "maxpooling + GraphSageConv(1) + GATv2Conv(3) + skip + T_MAX = 5",
         'scheduler':'CosineAnnealingLR',
         'nb_epochs': 15,
-        'batch_size': 24,
+        'batch_size': 16,
         'learning_rate': 2e-5,
-        'model_name': 'distilbert-base-uncased',
+        'model_name': 'bert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
         'nhid': 300,
         'graph_hidden_channels': 300,
         'heads': 20,
         'T_max': 5,
-        'comment': 'First run with Baptiste advices',
+        'comment': 'Second run with Baptiste advices',
     },
 }
