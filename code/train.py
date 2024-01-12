@@ -61,7 +61,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
-
     
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg['T_max']) # BAPTADD
 

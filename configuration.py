@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': "Matteo",
-        'name_exp': "maxpooling + GATv2Conv(3) + skip + increase feature size",
+        'name_exp': "maxpooling + GATv2Conv(3) + skip + T_MAX = 5",
         'scheduler':'CosineAnnealingLR',
         'nb_epochs': 15,
         'batch_size': 24,
