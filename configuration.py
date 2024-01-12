@@ -17,17 +17,4 @@ CFG_EXPERIMENTS = {
         'graph_hidden_channels': 300,
         'comment': '',
     },
-    1:{  
-        'who': GIT_USER,
-        'name_exp': "Baseline + high learning_rate",
-        'nb_epochs': 5,
-        'batch_size': 32,
-        'learning_rate': 1e-4,
-        'model_name': 'distilbert-base-uncased',
-        'num_node_features': 300,
-        'nout':  768,
-        'nhid': 300,
-        'graph_hidden_channels': 300,
-        'comment': '',
-    },
 }
