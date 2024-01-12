@@ -26,7 +26,7 @@ class MLPModel(nn.Module):
         
         x = self.relu(self.mol_hidden1(x))
         x = self.relu(self.mol_hidden2(x))
-        x = torch.sum(x, dim=0)
+        x = torch.sum(x, dim=2)
         x = self.mol_hidden3(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)
