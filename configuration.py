@@ -21,7 +21,7 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "maxpooling + DeepSet + skip",
+        'name_exp': "maxpooling + DeepSet",
         'scheduler': 'CosineAnnealingLR',
         'nb_epochs': 15,
         'batch_size': 24,
