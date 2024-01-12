@@ -31,7 +31,7 @@ CFG_EXPERIMENTS = {
         'nout':  768,
         'nhid': 600,
         'graph_hidden_channels': 600,
-        'heads': 15,
+        'heads': 20,
         'comment': '',
     },
 }
