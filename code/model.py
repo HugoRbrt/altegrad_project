@@ -30,12 +30,12 @@ class DeepSets(nn.Module):
     
     
 class GraphEncoder(nn.Module):
-    def __init__(self, nout, nhid):
+    def __init__(self, num_node_features, nout, nhid):
         super(GraphEncoder, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
-        self.mol_hidden1 = nn.Linear(nout, nhid)
+        self.mol_hidden1 = nn.Linear(num_node_features, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nhid)
         self.mol_hidden3 = nn.Linear(nhid, nout)
 
@@ -90,7 +90,7 @@ class TextEncoder(nn.Module):
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder(nout, nhid)
+        self.graph_encoder = GraphEncoder(num_node_features, nout, nhid)
         self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
