@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
-        'name_exp': "MLP 15 epoch",
+        'name_exp': "GCN 15 epoch",
         'nb_epochs': 15,
         'batch_size': 24,
         'learning_rate': 2e-5,
