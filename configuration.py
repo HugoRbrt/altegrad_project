@@ -24,7 +24,7 @@ CFG_EXPERIMENTS = {
         'name_exp': "maxpooling + GATv2Conv(3) + skip + increase feature size",
         'scheduler': 'CosineAnnealingLR',
         'nb_epochs': 15,
-        'batch_size': 24,
+        'batch_size': 16,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
