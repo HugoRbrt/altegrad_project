@@ -27,11 +27,12 @@ CFG_EXPERIMENTS = {
         'batch_size': 24,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
-        'num_node_features': 600,
+        'num_node_features': 300,
         'nout':  768,
         'nhid': 600,
         'graph_hidden_channels': 600,
         'heads': 20,
         'comment': '',
+        'T_max': 5,
     },
 }

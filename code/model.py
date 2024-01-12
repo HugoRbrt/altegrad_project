@@ -14,9 +14,9 @@ class GraphEncoder(nn.Module):
         self.ln = nn.LayerNorm((nout))
         self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
         self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
-        self.conv2 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
+        self.conv2 = GATv2Conv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
-        self.conv3 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
+        self.conv3 = GATv2Conv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
