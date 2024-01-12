@@ -62,6 +62,9 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
 
+    
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg['T_max']) # BAPTADD
+
     epoch = 0
     loss = 0
     losses = []
@@ -100,7 +103,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                     })
                 losses.append(loss)
                 loss = 0 
-        model.eval()       
+        model.eval()
+        scheduler.step() # BAPTADD      
         val_loss = 0        
         for batch in val_loader:
             input_ids = batch.input_ids
