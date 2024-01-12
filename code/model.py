@@ -34,8 +34,8 @@ from torch_geometric.nn import global_mean_pool, global_max_pool
 #         return x
     
 class GraphEncoder(nn.Module):
-    def init(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
-        super(GraphEncoder, self).init()
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
+        super(GraphEncoder, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
