@@ -107,8 +107,8 @@ class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
         # self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads)
-        self.graph_encoder = MLPModel(nout, nhid)
-        self.text_encoder = TextEncoder(num_node_features, model_name, nout)
+        self.graph_encoder = MLPModel(num_node_features, nout, nhid)
+        self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
