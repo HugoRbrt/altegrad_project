@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 from transformers import AutoModel
 
-from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GraphSAGEConv
+from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, SAGEConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 
 # class GraphEncoder(nn.Module):
@@ -41,7 +41,7 @@ class GraphEncoder(nn.Module):
         self.relu = nn.ReLU()
         self.ln = nn.LayerNorm(nout)
         #self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
-        self.conv1 = GraphSAGEConv(num_node_features, graph_hidden_channels)
+        self.conv1 = SAGEConv(num_node_features, graph_hidden_channels)
         self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
         self.conv2 = GATv2Conv(graph_hidden_channels* heads, graph_hidden_channels, heads=heads)
         self.skip_2 = nn.Linear(graph_hidden_channels*heads, graph_hidden_channels * heads)
