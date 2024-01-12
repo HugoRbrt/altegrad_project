@@ -33,7 +33,7 @@ class MLPModel(nn.Module):
     
 class GCNModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
-        super(MLPModel, self).__init__()
+        super(GCNModel, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.temp = nn.Parameter(torch.Tensor([0.07]))
