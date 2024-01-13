@@ -21,7 +21,7 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "maxpooling + GATv2Conv(3) + skip + increase feature size",
+        'name_exp': "maxpooling + GATv2Conv(2) + skip + increase feature size",
         'scheduler': 'CosineAnnealingLR',
         'nb_epochs': 15,
         'batch_size': 8,
