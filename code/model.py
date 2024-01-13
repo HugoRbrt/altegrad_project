@@ -129,16 +129,14 @@ class TextEncoder(nn.Module):
     def __init__(self, model_name, hidden_dim):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(model_name)
-        self.linear = nn.Linear(1024, 768)
         # self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
-        encoded_text = self.linear(encoded_text.last_hidden_state[:,0,:])
         #print(encoded_text.last_hidden_state.size())
         # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
         # return pooled_output   
-        return encoded_text
+        return encoded_text.last_hidden_state[:,0,:]
     
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):

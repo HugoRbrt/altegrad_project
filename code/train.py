@@ -59,10 +59,13 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     model.to(device)
     print(model)
 
-    optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
+    optimizer_graph = optim.AdamW(model.graph_encoder.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=14)
+    optimizer_text = optim.AdamW(model.text_encoder.parameters(), lr=0,
+                                    betas=(0.9, 0.999),
+                                    weight_decay=0.01)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_graph, T_max=14)
     #num_warmup_steps = cfg['num_warmup_steps']
     #num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
     #scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
@@ -89,9 +92,9 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     input_ids.to(device), 
                                     attention_mask.to(device))
             current_loss = contrastive_loss(x_graph, x_text)   
-            optimizer.zero_grad()
+            optimizer_graph.zero_grad()
             current_loss.backward()
-            optimizer.step()
+            optimizer_graph.step()
             loss += current_loss.item()
             
             count_iter += 1
@@ -133,7 +136,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             torch.save({
             'epoch': i,
             'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
+            'optimizer_state_dict': optimizer_graph.state_dict(),
             'validation_accuracy': val_loss,
             'loss': loss,
             }, save_path)
