@@ -6,9 +6,9 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
-        'name_exp': "MLP with != lr",
+        'name_exp': "MLP with != lr increase feature size",
         'nb_epochs': 20,
-        'batch_size': 32,
+        'batch_size': 48,
         'learning_rate': 1e-4,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
