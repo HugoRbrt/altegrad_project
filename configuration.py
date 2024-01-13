@@ -6,18 +6,17 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
-        'name_exp': "MLP with != lr increase feature size",
+        'name_exp': "MLP increase feature size",
         'nb_epochs': 20,
         'batch_size': 48,
-        'learning_rate': 1e-4,
+        'learning_rate': 3e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
-        'nhid': 300,
+        'nhid': 800,
         'heads': 20,
         'graph_hidden_channels': 300,
-        'scheduler': "linear_with_warmup",
-        'num_warmup_steps': 1000,
+        'scheduler': "CosineAnnealingLR",
         'comment': '',
         
     },
