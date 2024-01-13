@@ -3,6 +3,7 @@ wandb/**/*
 **/__*/*
 __kaggle_login.py
 kaggle.json
+*.sh
 # Byte-compiled / optimized / DLL files
 
 __pycache__/

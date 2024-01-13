@@ -109,17 +109,18 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 loss = 0 
         model.eval()       
         val_loss = 0        
-        for batch in val_loader:
-            input_ids = batch.input_ids
-            batch.pop('input_ids')
-            attention_mask = batch.attention_mask
-            batch.pop('attention_mask')
-            graph_batch = batch
-            x_graph, x_text = model(graph_batch.to(device), 
-                                    input_ids.to(device), 
-                                    attention_mask.to(device))
-            current_loss = contrastive_loss(x_graph, x_text)   
-            val_loss += current_loss.item()
+        with torch.no_grad(): 
+            for batch in val_loader:
+                input_ids = batch.input_ids
+                batch.pop('input_ids')
+                attention_mask = batch.attention_mask
+                batch.pop('attention_mask')
+                graph_batch = batch
+                x_graph, x_text = model(graph_batch.to(device), 
+                                        input_ids.to(device), 
+                                        attention_mask.to(device))
+                current_loss = contrastive_loss(x_graph, x_text)   
+                val_loss += current_loss.item()
         
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
@@ -159,19 +160,20 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
 
     idx_to_cid = test_cids_dataset.get_idx_to_cid()
 
-    test_loader = DataLoader(test_cids_dataset, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(test_cids_dataset, batch_size=batch_size//4, shuffle=False)
+    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size//4, shuffle=False)
 
-    graph_embeddings = []
-    for batch in test_loader:
-        for output in graph_model(batch.to(device)):
-            graph_embeddings.append(output.tolist())
+    with torch.no_grad(): 
+        graph_embeddings = []
+        for batch in test_loader:
+            for output in graph_model(batch.to(device)):
+                graph_embeddings.append(output.tolist())
 
-    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size, shuffle=False)
-    text_embeddings = []
-    for batch in test_text_loader:
-        for output in text_model(batch['input_ids'].to(device), 
-                                attention_mask=batch['attention_mask'].to(device)):
-            text_embeddings.append(output.tolist())
+        text_embeddings = []
+        for batch in test_text_loader:
+            for output in text_model(batch['input_ids'].to(device), 
+                                    attention_mask=batch['attention_mask'].to(device)):
+                text_embeddings.append(output.tolist())
 
     similarity = cosine_similarity(text_embeddings, graph_embeddings)
 
