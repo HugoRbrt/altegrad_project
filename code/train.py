@@ -141,11 +141,17 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             'loss': loss,
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
+
         if not wandb.run and (epoch==10 or epoch==15 or epoch==20):
             model_artifact = wandb.Artifact('model'+str(epoch)+'epoch'+str(uuid.uuid1()).replace("-",""), type='model')
             model_artifact.add_file(save_path)
             wandb.log_artifact(model_artifact)
-        
+            
+            description_artifact = wandb.Artifact('description_model'+str(uuid.uuid1()).replace("-",""), type='python')
+            description_artifact.add_file("/root/altegrad_project/code/model.py")
+            description_artifact.add_file("/root/altegrad_project/code/train.py")
+            description_artifact.add_file("/root/altegrad_project/code/data_loader.py")
+            wandb.log_artifact(description_artifact)
 
     print('loading best model...')
     checkpoint = torch.load(save_path)
@@ -186,7 +192,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         submission_artifact = wandb.Artifact('submission'+str(uuid.uuid1()).replace("-",""), type='csv')
         submission_artifact.add_file('submission.csv')
         wandb.log_artifact(submission_artifact)
-        wandb.finish()
 
     # vizualise result on validation_set
     with torch.no_grad(): 
