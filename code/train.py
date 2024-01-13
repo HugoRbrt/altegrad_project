@@ -55,6 +55,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
 
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_cids_dataset, batch_size=batch_size // 4, shuffle=False)
     test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size // 4, shuffle=False)
 
 
@@ -157,7 +158,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
 
     idx_to_cid = test_cids_dataset.get_idx_to_cid()
 
-    test_loader = DataLoader(test_cids_dataset, batch_size=batch_size, shuffle=False)
     with torch.no_grad():
         graph_embeddings = []
         for batch in test_loader:

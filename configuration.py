@@ -29,10 +29,10 @@ CFG_EXPERIMENTS = {
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
-        'nhid': 300,
+        'nhid': 600,
         'graph_hidden_channels': '',
         'heads': '',
         'comment': '',
-        'T_max': 5,
+        'T_max': 10,
     },
 }
