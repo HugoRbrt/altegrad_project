@@ -183,3 +183,26 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         submission_artifact.add_file('submission.csv')
         wandb.log_artifact(submission_artifact)
         wandb.finish()
+
+    # vizualise result on validation_set
+    with torch.no_grad(): 
+        graph_embeddings = []
+        text_embeddings = []
+        for batch in val_loader:
+            for output in graph_model(batch.to(device)):
+                graph_embeddings.append(output.tolist())
+            for output in text_model(batch['input_ids'].to(device), 
+                                    attention_mask=batch['attention_mask'].to(device)):
+                text_embeddings.append(output.tolist())
+                
+    similarity = cosine_similarity(text_embeddings, graph_embeddings)
+    solution = pd.DataFrame(similarity)
+    solution['ID'] = solution.index
+    solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
+    solution.to_csv('validation _results.csv', index=False)
+    
+    if not no_wandb:
+        validation_artifact = wandb.Artifact('validation_results'+str(uuid.uuid1()).replace("-",""), type='csv')
+        validation_artifact.add_file('validation _results.csv')
+        wandb.log_artifact(validation_artifact)
+        wandb.finish()
