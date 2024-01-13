@@ -59,16 +59,14 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     model.to(device)
     print(model)
 
-    optimizer_graph = optim.AdamW(model.graph_encoder.parameters(), lr=learning_rate,
-                                    betas=(0.9, 0.999),
-                                    weight_decay=0.01)
-    optimizer_text = optim.AdamW(model.text_encoder.parameters(), lr=0,
-                                    betas=(0.9, 0.999),
-                                    weight_decay=0.01)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_graph, T_max=14)
-    #num_warmup_steps = cfg['num_warmup_steps']
-    #num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
-    #scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
+    optimizer = optim.Adam([
+                {'params': model.graph_encoder.parameters()},
+                {'params': model.text_encoder.parameters(), 'lr': 3e-5}
+            ], lr=learning_rate)
+    #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=14)
+    num_warmup_steps = cfg['num_warmup_steps']
+    num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
+    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
 
     epoch = 0
     loss = 0
@@ -92,9 +90,10 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     input_ids.to(device), 
                                     attention_mask.to(device))
             current_loss = contrastive_loss(x_graph, x_text)   
-            optimizer_graph.zero_grad()
+            optimizer.zero_grad()
             current_loss.backward()
-            optimizer_graph.step()
+            optimizer.step()
+            scheduler.step()
             loss += current_loss.item()
             
             count_iter += 1
@@ -121,7 +120,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     attention_mask.to(device))
             current_loss = contrastive_loss(x_graph, x_text)   
             val_loss += current_loss.item()
-        scheduler.step()
+        
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
         if not no_wandb:
@@ -136,15 +135,15 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             torch.save({
             'epoch': i,
             'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer_graph.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
             'validation_accuracy': val_loss,
             'loss': loss,
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
-    if not wandb.run:
-        model_artifact = wandb.Artifact('model'+str(uuid.uuid1()).replace("-",""), type='model')
-        model_artifact.add_file(save_path)
-        wandb.log_artifact(model_artifact)
+        if not wandb.run and (epoch==10 or epoch==15 or epoch==20):
+            model_artifact = wandb.Artifact('model'+str(epoch)+'epoch'+str(uuid.uuid1()).replace("-",""), type='model')
+            model_artifact.add_file(save_path)
+            wandb.log_artifact(model_artifact)
         
 
     print('loading best model...')
