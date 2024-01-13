@@ -30,7 +30,7 @@ CFG_EXPERIMENTS = {
         'num_node_features': 300,
         'nout':  768,
         'nhid': 600,
-        'graph_hidden_channels': 550,
+        'graph_hidden_channels': 600,
         'heads': 20,
         'comment': '',
         'T_max': 10,
