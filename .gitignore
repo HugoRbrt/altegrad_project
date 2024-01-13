@@ -5,7 +5,7 @@ __kaggle_login.py
 kaggle.json
 *.sh
 # Byte-compiled / optimized / DLL files
-
+*.sh
 __pycache__/
 *.py[cod]
 *$py.class
