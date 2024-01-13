@@ -8,7 +8,7 @@ CFG_EXPERIMENTS = {
         'who': GIT_USER,
         'name_exp': "MLP increase feature size nhid=600",
         'nb_epochs': 20,
-        'batch_size': 48,
+        'batch_size': 24,
         'learning_rate': 3e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
