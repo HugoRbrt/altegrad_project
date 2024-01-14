@@ -106,7 +106,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                     })
                 losses.append(loss)
                 loss = 0 
-        scheduler.step()
+        # scheduler.step()
         model.eval()       
         val_loss = 0
         with torch.no_grad():    
