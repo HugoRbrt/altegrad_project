@@ -21,7 +21,7 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "GATConv(3) - scheduler",
+        'name_exp': "avg DeepSet - scheduler",
         'scheduler': '',
         'nb_epochs': 20,
         'batch_size': 24,
@@ -29,10 +29,10 @@ CFG_EXPERIMENTS = {
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
-        'nhid': 450,
-        'graph_hidden_channels': 450,
-        'heads': 20,
+        'nhid': 1000,
+        'graph_hidden_channels': '',
+        'heads': '',
         'comment': '',
-        'T_max': 10,
+        'T_max': '',
     },
 }
