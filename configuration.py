@@ -21,8 +21,8 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "GATConv(3)",
-        'scheduler': 'CosineAnnealingLR',
+        'name_exp': "GATConv(3) - scheduler",
+        'scheduler': '',
         'nb_epochs': 20,
         'batch_size': 24,
         'learning_rate': 2e-5,
