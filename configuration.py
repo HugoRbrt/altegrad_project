@@ -21,7 +21,7 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "GATConv(2) + skip - scheduler",
+        'name_exp': "GATConv(2) + skip + scheduler",
         'scheduler': '',
         'nb_epochs': 25,
         'batch_size': 24,
