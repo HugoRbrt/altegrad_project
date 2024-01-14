@@ -75,7 +75,7 @@ class GraphEncoder_v2(nn.Module):
 
 class GraphLEConv(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
-        super(GraphEncoder, self).__init__()
+        super(GraphLEConv, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
