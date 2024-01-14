@@ -99,7 +99,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                                                             time2 - time1, loss/printEvery))
                 if not no_wandb:
                     wandb.log({
-                        "epoch/train": i, 'loss/train': loss/printEvery,
+                        "epoch/train": i, 'loss/train': loss/printEvery, 'loss/train2': loss/(batch_size*printEvery),
                     })
                 losses.append(loss)
                 loss = 0 
@@ -119,11 +119,12 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             val_loss += current_loss.item()
             scheduler.step(val_loss) # ADD 
         best_validation_loss = min(best_validation_loss, val_loss)
-        print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
+        print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
         if not no_wandb:
             wandb.log({
                 'epoch/val': i,
                 'loss/val':  val_loss/len(val_loader),
+                'loss/val2':  val_loss/(batch_size*len(val_loader)),
                 'accuract/val': 0,
             })
         if best_validation_loss==val_loss:
@@ -138,6 +139,16 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
 
+    if not no_wandb:
+        model_artifact = wandb.Artifact('model'+str(uuid.uuid1()).replace("-",""), type='model')
+        model_artifact.add_file(save_path)
+        wandb.log_artifact(model_artifact)
+        
+        description_artifact = wandb.Artifact('description_model'+str(uuid.uuid1()).replace("-",""), type='python')
+        description_artifact.add_file("/root/altegrad_project/code/model.py")
+        description_artifact.add_file("/root/altegrad_project/code/train.py")
+        description_artifact.add_file("/root/altegrad_project/code/data_loader.py")
+        wandb.log_artifact(description_artifact)
 
     print('loading best model...')
     checkpoint = torch.load(save_path)
@@ -178,8 +189,26 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         submission_artifact = wandb.Artifact('submission'+str(uuid.uuid1()).replace("-",""), type='csv')
         submission_artifact.add_file('submission.csv')
         wandb.log_artifact(submission_artifact)
-        
-        model_artifact = wandb.Artifact('model'+str(uuid.uuid1()).replace("-",""), type='model')
-        model_artifact.add_file(save_path)
-        wandb.log_artifact(model_artifact)
+
+    # vizualise result on validation_set
+    with torch.no_grad(): 
+        graph_embeddings = []
+        text_embeddings = []
+        for batch in val_loader:
+            for output in graph_model(batch.to(device)):
+                graph_embeddings.append(output.tolist())
+            for output in text_model(batch['input_ids'].to(device), 
+                                    attention_mask=batch['attention_mask'].to(device)):
+                text_embeddings.append(output.tolist())
+                
+    similarity = cosine_similarity(text_embeddings, graph_embeddings)
+    solution = pd.DataFrame(similarity)
+    solution['ID'] = solution.index
+    solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
+    solution.to_csv('validation _results.csv', index=False)
+    
+    if not no_wandb:
+        validation_artifact = wandb.Artifact('validation_results'+str(uuid.uuid1()).replace("-",""), type='csv')
+        validation_artifact.add_file('validation _results.csv')
+        wandb.log_artifact(validation_artifact)
         wandb.finish()
