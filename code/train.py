@@ -148,6 +148,12 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         model_artifact.add_file(save_path)
         wandb.log_artifact(model_artifact)
         
+        description_artifact = wandb.Artifact('description_model'+str(uuid.uuid1()).replace("-",""), type='python')
+        description_artifact.add_file("/root/altegrad_project/code/model.py")
+        description_artifact.add_file("/root/altegrad_project/code/train.py")
+        description_artifact.add_file("/root/altegrad_project/code/data_loader.py")
+        wandb.log_artifact(description_artifact)
+
     print('loading best model...')
     checkpoint = torch.load(save_path)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -182,7 +188,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         submission_artifact = wandb.Artifact('submission'+str(uuid.uuid1()).replace("-",""), type='csv')
         submission_artifact.add_file('submission.csv')
         wandb.log_artifact(submission_artifact)
-        wandb.finish()
 
     # vizualise result on validation_set
     with torch.no_grad(): 
@@ -203,6 +208,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     
     if not no_wandb:
         validation_artifact = wandb.Artifact('validation_results'+str(uuid.uuid1()).replace("-",""), type='csv')
-        validation_artifact.add_file('validation _results.csv')
+        validation_artifact.add_file('validation_results.csv')
         wandb.log_artifact(validation_artifact)
         wandb.finish()
