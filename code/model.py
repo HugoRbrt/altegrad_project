@@ -39,11 +39,11 @@ class GraphEncoder_v2(nn.Module):
         self.nout = nout
         self.relu = nn.ReLU()
         self.ln = nn.LayerNorm((nout))
-        self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
+        self.conv1 = GATConv(num_node_features, graph_hidden_channels, heads=heads)
         self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
-        self.conv2 = GATv2Conv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+        self.conv2 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
-        self.conv3 = GATv2Conv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+        self.conv3 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
@@ -138,7 +138,7 @@ class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
         # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
-        self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads)
+        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads)
         self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
