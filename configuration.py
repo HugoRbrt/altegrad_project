@@ -21,7 +21,7 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "LEConv(3) + scheduler",
+        'name_exp': "RGCNConv(3) + scheduler",
         'scheduler': '',
         'nb_epochs': 15,
         'batch_size': 24,

@@ -202,7 +202,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
         # self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads)
-        self.graph_encoder = GraphLEConv(num_node_features, nout, nhid)
+        self.graph_encoder = GraphRGCNConv(num_node_features, nout, nhid)
         self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
