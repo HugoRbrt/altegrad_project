@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv
+from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
 
@@ -31,6 +31,8 @@ class MLPModel(nn.Module):
         x = self.ln(x)
         x = x * torch.exp(self.temp)
         return x
+    
+
     
 class GraphEncoder_v2(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
@@ -73,13 +75,44 @@ class GraphEncoder_v2(nn.Module):
         x = self.mol_hidden2(x)
         return x
 
+
+class GraphRGCNConv(nn.Module):
+    def __init__(self, num_node_features, nout, nhid):
+        super(GraphRGCNConv, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.conv1 = RGCNConv(num_node_features, nhid, num_relations=7)
+        self.conv2 = RGCNConv(nhid, nhid, num_relations=7)
+        self.conv3 = RGCNConv(nhid, nhid, num_relations=7)
+
+        self.mol_hidden1 = nn.Linear(nhid, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        x = self.conv1(x, edge_index)
+        x = self.relu(x)
+        x = self.conv2(x, edge_index)
+        x = self.relu(x)
+        x = self.conv3(x, edge_index)
+        x = self.relu(x)
+        
+        x = global_max_pool(x, batch)
+        x = self.mol_hidden1(x).relu()
+        x = self.mol_hidden2(x)
+        return x
+   
+   
 class GraphLEConv(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
         super(GraphLEConv, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
-        self.conv1 = LEConv(num_node_features, LEConv)
+        self.conv1 = LEConv(num_node_features, nhid)
         self.conv2 = LEConv(nhid, nhid)
         self.conv3 = LEConv(nhid, nhid)
 
@@ -101,7 +134,8 @@ class GraphLEConv(nn.Module):
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x
-    
+     
+     
 class GraphEncoder(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(GraphEncoder, self).__init__()
@@ -130,6 +164,7 @@ class GraphEncoder(nn.Module):
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x
+    
 class AttentionPooling(nn.Module):
     def __init__(self, hidden_dim):
         super(AttentionPooling, self).__init__()
