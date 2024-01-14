@@ -63,10 +63,10 @@ class GraphEncoder_v2(nn.Module):
         x = skip_x + x2  # Apply skip connection
         x = self.relu(x)
         
-        # x3 = self.conv3(x, edge_index)
-        # skip_x = self.skip_3(x)  # Prepare skip connection
-        # x = skip_x + x3  # Apply skip connection
-        # x = self.relu(x)
+        x3 = self.conv3(x, edge_index)
+        skip_x = self.skip_3(x)  # Prepare skip connection
+        x = skip_x + x3  # Apply skip connection
+        x = self.relu(x)
         
         x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()
