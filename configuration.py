@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
-        'name_exp': "MLP increase feature size nhid=600",
+        'name_exp': "to remove",
         'nb_epochs': 30,
         'batch_size': 24,
         'learning_rate': 3e-5,
