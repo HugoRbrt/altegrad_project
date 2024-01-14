@@ -142,16 +142,16 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
 
-        if not no_wandb and epoch==20:
-            model_artifact = wandb.Artifact('model'+str(epoch)+'epoch'+str(uuid.uuid1()).replace("-",""), type='model')
-            model_artifact.add_file(save_path)
-            wandb.log_artifact(model_artifact)
-            
-            description_artifact = wandb.Artifact('description_model'+str(uuid.uuid1()).replace("-",""), type='python')
-            description_artifact.add_file("/root/altegrad_project/code/model.py")
-            description_artifact.add_file("/root/altegrad_project/code/train.py")
-            description_artifact.add_file("/root/altegrad_project/code/data_loader.py")
-            wandb.log_artifact(description_artifact)
+    if not no_wandb:
+        model_artifact = wandb.Artifact('model'+str(epoch)+'epoch'+str(uuid.uuid1()).replace("-",""), type='model')
+        model_artifact.add_file(save_path)
+        wandb.log_artifact(model_artifact)
+        
+        description_artifact = wandb.Artifact('description_model'+str(uuid.uuid1()).replace("-",""), type='python')
+        description_artifact.add_file("/root/altegrad_project/code/model.py")
+        description_artifact.add_file("/root/altegrad_project/code/train.py")
+        description_artifact.add_file("/root/altegrad_project/code/data_loader.py")
+        wandb.log_artifact(description_artifact)
 
     print('loading best model...')
     checkpoint = torch.load(save_path)
