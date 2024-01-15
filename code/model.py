@@ -94,9 +94,6 @@ class MoMuGNN(torch.nn.Module):
         if self.num_layer < 2:
             raise ValueError("Number of GNN layers must be greater than 1.")
 
-        torch.nn.init.xavier_uniform_(self.x_embedding1.weight.data)
-        torch.nn.init.xavier_uniform_(self.x_embedding2.weight.data)
-
         self.gnns = torch.nn.ModuleList()
         for layer in range(num_layer):
             self.gnns.append(GINConv(num_node_features, aggr = "add"))
