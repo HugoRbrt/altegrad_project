@@ -26,7 +26,7 @@ CFG_EXPERIMENTS = {
         'nb_epochs': 40,
         'batch_size': 24,
         'learning_rate': 2e-5,
-        'model_name': 'allenai/scibert_scivocab_uncased',
+        'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
         'nhid': 450,
@@ -37,4 +37,4 @@ CFG_EXPERIMENTS = {
     },
 }
 
-# allenai/scibert_scivocab_uncased
+# scibert_scivocab_uncased
