@@ -144,6 +144,7 @@ class GraphEncoder(nn.Module):
         )
     
         self.num_features = num_node_features
+        self.nout = nout
         self.fc_hidden = nn.Linear(self.num_features, self.nout)
     
     def forward(self, graph_batch):
