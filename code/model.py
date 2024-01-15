@@ -15,10 +15,9 @@ class MLPModel(nn.Module):
         self.temp = nn.Parameter(torch.Tensor([0.07]))
         self.register_parameter( 'temp' , self.temp )
         self.mol_hidden1 = nn.Linear(num_node_features, nhid)
-        self.dropout1 = nn.Dropout(0.2)
         self.mol_hidden2 = nn.Linear(nhid, nhid)
-        self.dropout2 = nn.Dropout(0.2)
-        self.mol_hidden3 = nn.Linear(nhid, nout)
+        self.mol_hidden3 = nn.Linear(nhid, nhid)
+        self.mol_hidden4 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch):
         x = graph_batch.x
@@ -26,10 +25,9 @@ class MLPModel(nn.Module):
         batch = graph_batch.batch
         
         x = self.relu(self.mol_hidden1(x))
-        x = self.dropout1(x)
         x = self.relu(self.mol_hidden2(x))
-        x = self.dropout2(x)
-        x = self.mol_hidden3(x)
+        x = self.relu(self.mol_hidden3(x))
+        x = self.mol_hidden4(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)
         x = global_max_pool(x, batch)
@@ -123,7 +121,7 @@ class MoMuGNN(torch.nn.Module):
         node_representation_padded = global_max_pool(node_representation, batch)
         return node_representation_padded
 
-class GraphEncoder(nn.Module):
+class GINConModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
         super().__init__()
         
@@ -179,8 +177,8 @@ class TextEncoder(nn.Module):
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder(num_node_features, nout, nhid)
-        #self.graph_encoder = MLPModel(num_node_features, nout, nhid)
+        #self.graph_encoder = GINConModel(num_node_features, nout, nhid)
+        self.graph_encoder = MLPModel(num_node_features, nout, nhid)
         self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):

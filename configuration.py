@@ -6,8 +6,8 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
-        'name_exp': "GINConv",
-        'nb_epochs': 20,
+        'name_exp': "MLP 4 layer nhid 800",
+        'nb_epochs': 30,
         'batch_size': 24,
         'learning_rate': 3e-5,
         'model_name': 'distilbert-base-uncased',
@@ -18,6 +18,5 @@ CFG_EXPERIMENTS = {
         'graph_hidden_channels': 300,
         'scheduler': "CosineAnnealingLR",
         'comment': '',
-        
     },
 }
