@@ -98,7 +98,7 @@ class MoMuGNN(torch.nn.Module):
         self.batch_norms = torch.nn.ModuleList()
         for layer in range(num_layer):
             self.gnns.append(GINConv(torch.nn.Sequential(torch.nn.Linear(num_node_features, 2*num_node_features), torch.nn.ReLU(), torch.nn.Linear(2*num_node_features, num_node_features)), aggr = "add"))
-            self.batch_norms.append(torch.nn.BatchNorm1d(nout))
+            self.batch_norms.append(torch.nn.BatchNorm1d(num_node_features))
 
     def forward(self, graph_batch):
         x, edge_index, batch = graph_batch.x, graph_batch.edge_index, graph_batch.batch
