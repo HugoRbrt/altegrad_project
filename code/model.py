@@ -104,6 +104,7 @@ class MoMuGNN(torch.nn.Module):
         x, edge_index, batch = graph_batch.x, graph_batch.edge_index, graph_batch.batch
 
         h_list = [x]
+        print(f"shape of x (24, .., 300): {x.shape}")
         for layer in range(self.num_layer):
             h = self.gnns[layer](h_list[layer], edge_index)
             h = self.batch_norms[layer](h)
@@ -143,7 +144,9 @@ class GraphEncoder(nn.Module):
     
     def forward(self, graph_batch):
         node_feats = self.graph2d_encoder(graph_batch)
+        print(f"node_feats (24,300): {node_feats.shape}")
         node_feats = self.fc_hidden(node_feats)
+        print(f"out (24, 768): {node_feats.shape}")
         return node_feats
 
 class AttentionPooling(nn.Module):
