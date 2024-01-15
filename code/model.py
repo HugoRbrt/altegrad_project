@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree, softmax
-from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, GINConv
+from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
 
