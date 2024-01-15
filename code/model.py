@@ -15,7 +15,9 @@ class MLPModel(nn.Module):
         self.temp = nn.Parameter(torch.Tensor([0.07]))
         self.register_parameter( 'temp' , self.temp )
         self.mol_hidden1 = nn.Linear(num_node_features, nhid)
+        self.dropout1 = nn.Dropout(0.2)
         self.mol_hidden2 = nn.Linear(nhid, nhid)
+        self.dropout2 = nn.Dropout(0.2)
         self.mol_hidden3 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch):
@@ -24,7 +26,9 @@ class MLPModel(nn.Module):
         batch = graph_batch.batch
         
         x = self.relu(self.mol_hidden1(x))
+        x = self.dropout1(x)
         x = self.relu(self.mol_hidden2(x))
+        x = self.dropout2(x)
         x = self.mol_hidden3(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)
