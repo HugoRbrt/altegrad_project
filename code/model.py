@@ -104,7 +104,7 @@ class MoMuGNN(torch.nn.Module):
         x, edge_index, batch = graph_batch.x, graph_batch.edge_index, graph_batch.batch
 
         h_list = [x]
-        print(f"shape of x (24, .., 300): {x.shape}")
+        print(f"shape of x (.., 300): {x.shape}")
         for layer in range(self.num_layer):
             h = self.gnns[layer](h_list[layer], edge_index)
             h = self.batch_norms[layer](h)
@@ -122,7 +122,7 @@ class MoMuGNN(torch.nn.Module):
 
         for graph_idx in range(len(node_counts)):
             node_representation_list.append(node_representation[batch == graph_idx])
-
+        print(f"shape of node_representation_list: {len(node_representation_list)}")
         node_representation_padded = torch.nn.utils.rnn.pad_sequence(node_representation_list, batch_first=True)
         return node_representation
 
