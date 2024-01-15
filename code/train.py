@@ -89,6 +89,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             x_graph, x_text = model(graph_batch.to(device), 
                                     input_ids.to(device), 
                                     attention_mask.to(device))
+            print(x_text.shape, x_graph.shape)
             current_loss = contrastive_loss(x_graph, x_text)   
             optimizer.zero_grad()
             current_loss.backward()
@@ -118,7 +119,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 x_graph, x_text = model(graph_batch.to(device), 
                                         input_ids.to(device), 
                                         attention_mask.to(device))
-                print(x_text.shape, x_graph.shape)
                 current_loss = contrastive_loss(x_graph, x_text)   
                 val_loss += current_loss.item()
         scheduler.step()
