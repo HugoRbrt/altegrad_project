@@ -21,18 +21,20 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "RGCNConv(3) + scheduler",
+        'name_exp': "GATConv(3) + scheduler + skip",
         'scheduler': '',
-        'nb_epochs': 15,
+        'nb_epochs': 40,
         'batch_size': 24,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
-        'nhid': 512,
-        'graph_hidden_channels': '',
-        'heads': '',
+        'nhid': 450,
+        'graph_hidden_channels': 450,
+        'heads': 20,
         'comment': '',
         'T_max': 10,
     },
 }
+
+# scibert_scivocab_uncased
