@@ -124,7 +124,7 @@ class MoMuGNN(torch.nn.Module):
             node_representation_list.append(node_representation[batch == graph_idx])
         print(f"shape of node_representation_list: {len(node_representation_list)}")
         node_representation_padded = torch.nn.utils.rnn.pad_sequence(node_representation_list, batch_first=True)
-        return node_representation
+        return node_representation_padded
 
 class GraphEncoder(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
