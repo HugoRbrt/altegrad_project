@@ -124,6 +124,7 @@ class MoMuGNN(torch.nn.Module):
             node_representation_list.append(node_representation[batch == graph_idx])
         print(f"shape of node_representation_list: {len(node_representation_list)}")
         node_representation_padded = torch.nn.utils.rnn.pad_sequence(node_representation_list, batch_first=True)
+        node_representation_padded = global_max_pool(node_representation_padded, batch)
         return node_representation_padded
 
 class GraphEncoder(nn.Module):
