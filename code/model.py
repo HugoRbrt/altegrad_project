@@ -104,7 +104,6 @@ class MoMuGNN(torch.nn.Module):
         x, edge_index, batch = graph_batch.x, graph_batch.edge_index, graph_batch.batch
 
         h_list = [x]
-        print(f"shape of x (.., 300): {x.shape}")
         for layer in range(self.num_layer):
             h = self.gnns[layer](h_list[layer], edge_index)
             h = self.batch_norms[layer](h)
@@ -115,14 +114,11 @@ class MoMuGNN(torch.nn.Module):
             h_list.append(h)
 
         node_representation = h_list[-1]    
-        print(f"shape of node_representation: {node_representation.shape}")
-        print(f"shape of h_list: {len(h_list)}")
         node_counts = batch.bincount()
         node_representation_list = []
 
         for graph_idx in range(len(node_counts)):
             node_representation_list.append(node_representation[batch == graph_idx])
-        print(f"shape of node_representation_list: {len(node_representation_list)}")
         node_representation_padded = torch.nn.utils.rnn.pad_sequence(node_representation_list, batch_first=True)
         node_representation_padded = global_max_pool(node_representation, batch)
         return node_representation_padded
@@ -145,9 +141,7 @@ class GraphEncoder(nn.Module):
     
     def forward(self, graph_batch):
         node_feats = self.graph2d_encoder(graph_batch)
-        print(f"node_feats (24,300): {node_feats.shape}")
         node_feats = self.fc_hidden(node_feats)
-        print(f"out (24, 768): {node_feats.shape}")
         return node_feats
 
 class AttentionPooling(nn.Module):
