@@ -105,9 +105,6 @@ class MoMuGNN(torch.nn.Module):
 
         h_list = [x]
         for layer in range(self.num_layer):
-            print(layer)
-            print(edge_index.shape)
-            print(h_list[layer].shape)
             h = self.gnns[layer](h_list[layer], edge_index)
             h = self.batch_norms[layer](h)
             if layer == self.num_layer - 1:
