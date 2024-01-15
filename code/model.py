@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv
+from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, GINConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
 
@@ -69,46 +69,90 @@ class GCNModel(nn.Module):
         x = x * torch.exp(self.temp)
         return x
 
-class GraphEncoder(nn.Module):
-    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
-        super(GraphEncoder, self).__init__()
-        self.nhid = nhid
-        self.nout = nout
-        self.relu = nn.ReLU()
-        self.ln = nn.LayerNorm((nout))
-        self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
-        self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
-        self.conv2 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
-        self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
-        self.conv3 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
-        self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
+class MoMuGNN(torch.nn.Module):
+    """
+    Args:
+        num_layer (int): the number of GNN layers
+        emb_dim (int): dimensionality of embeddings
+        JK (str): last, concat, max or sum.
+        max_pool_layer (int): the layer from which we use max pool rather than add pool for neighbor aggregation
+        drop_ratio (float): dropout rate
+        gnn_type: gin, gcn, graphsage, gat
 
-        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
-        self.mol_hidden2 = nn.Linear(nhid, nout)
+    Output:
+        node representations
+
+    """
+    def __init__(self, num_layer, nout, JK = "last", drop_ratio = 0, num_node_features=0):
+        super(MoMuGNN, self).__init__()
+        self.num_layer = num_layer
+        self.drop_ratio = drop_ratio
+        self.JK = JK
+        self.output_dim = nout
+        self.num_node_features = num_node_features
+
+        if self.num_layer < 2:
+            raise ValueError("Number of GNN layers must be greater than 1.")
+
+        torch.nn.init.xavier_uniform_(self.x_embedding1.weight.data)
+        torch.nn.init.xavier_uniform_(self.x_embedding2.weight.data)
+
+        self.gnns = torch.nn.ModuleList()
+        for layer in range(num_layer):
+            self.gnns.append(GINConv(num_node_features, aggr = "add"))
+        
+        self.pool = global_mean_pool
+            
+        self.batch_norms = torch.nn.ModuleList()
+        for layer in range(num_layer):
+            self.batch_norms.append(torch.nn.BatchNorm1d(nout))
 
     def forward(self, graph_batch):
-        x = graph_batch.x
-        edge_index = graph_batch.edge_index
-        batch = graph_batch.batch
-        x1 = self.conv1(x, edge_index)
-        skip_x = self.skip_1(x)  # Prepare skip connection
-        x = skip_x + x1  # Apply skip connection
-        x = self.relu(x)
+        x, edge_index, batch = graph_batch.x, graph_batch.edge_index, graph_batch.batch
+
+        h_list = [x]
+        for layer in range(self.num_layer):
+            h = self.gnns[layer](h_list[layer], edge_index)
+            h = self.batch_norms[layer](h)
+            if layer == self.num_layer - 1:
+                h = F.dropout(h, self.drop_ratio, training = self.training)
+            else:
+                h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
+            h_list.append(h)
+
+        ### Different implementations of Jk-concat
+        node_representation = h_list[-1]
         
-        x2 = self.conv2(x, edge_index)
-        skip_x = self.skip_2(x)  # Prepare skip connection
-        x = skip_x + x2  # Apply skip connection
-        x = self.relu(x)
+        h_graph = self.pool(node_representation, batch)
+        node_counts = batch.bincount()
+        node_representation_list = []
+
+        for graph_idx in range(len(node_counts)):
+            node_representation_graph = node_representation[batch == graph_idx]
+            node_representation_list.append(node_representation_graph)
+
+        node_representation_padded = torch.nn.utils.rnn.pad_sequence(node_representation_list, batch_first=True)
+        return node_representation_padded
+
+class GraphEncoder(nn.Module):
+    def __init__(self, num_node_features, nout, nhid):
+        super().__init__()
         
-        x3 = self.conv3(x, edge_index)
-        skip_x = self.skip_3(x)  # Prepare skip connection
-        x = skip_x + x3  # Apply skip connection
-        x = self.relu(x)
-        
-        x = global_max_pool(x, batch)
-        x = self.mol_hidden1(x).relu()
-        x = self.mol_hidden2(x)
-        return x
+        self.graph2d_encoder = self.graph_encoder = MoMuGNN(
+            num_layer=2, #TODO: can change nb of GIN layers
+            nout=nout,
+            drop_ratio=0,
+            JK='last', 
+            num_node_features=num_node_features
+        )
+    
+        self.num_features = num_node_features
+        self.fc_hidden = nn.Linear(self.num_features, self.nout)
+    
+    def forward(self, graph_batch):
+        node_feats = self.graph2d_encoder(graph_batch)
+        node_feats = self.fc_hidden(node_feats)
+        return node_feats
 
 class AttentionPooling(nn.Module):
     def __init__(self, hidden_dim):
@@ -145,8 +189,8 @@ class TextEncoder(nn.Module):
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
-        # self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads)
-        self.graph_encoder = MLPModel(num_node_features, nout, nhid)
+        self.graph_encoder = GraphEncoder(num_node_features, nout, nhid)
+        #self.graph_encoder = MLPModel(num_node_features, nout, nhid)
         self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
