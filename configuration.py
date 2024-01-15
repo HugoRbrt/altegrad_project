@@ -14,6 +14,7 @@ CFG_EXPERIMENTS = {
         'num_node_features': 300,
         'nout':  768,
         'nhid': 800,
+        'heads': 20,
         'graph_hidden_channels': 300,
         'scheduler': "CosineAnnealingLR",
         'comment': '',
