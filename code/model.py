@@ -41,15 +41,16 @@ class GraphEncoder(nn.Module):
         self.relu = nn.ReLU()
         self.ln = nn.LayerNorm(nout)
         #self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
-        self.conv1 = SAGEConv(num_node_features, graph_hidden_channels)
+        self.conv1 = GATv2Conv(graph_hidden_channels* heads, graph_hidden_channels, heads=heads)
         self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
         self.conv2 = GATv2Conv(graph_hidden_channels* heads, graph_hidden_channels, heads=heads)
         self.skip_2 = nn.Linear(graph_hidden_channels*heads, graph_hidden_channels * heads)
         self.conv3 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
         self.skip_3 = nn.Linear(graph_hidden_channels*heads, graph_hidden_channels * heads)
 
-        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
-        self.mol_hidden2 = nn.Linear(nhid, nout)
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, 2 * nhid)
+        self.mol_hidden2 = nn.Linear(2 * nhid, nhid)
+        self.mol_hidden3 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch):
         x = graph_batch.x
@@ -72,7 +73,8 @@ class GraphEncoder(nn.Module):
 
         x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()
-        x = self.mol_hidden2(x)
+        x = self.mol_hidden2(x).relu()
+        x = self.mol_hidden3(x)
         return x
     
 class TextEncoder(nn.Module):
