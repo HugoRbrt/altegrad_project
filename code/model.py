@@ -95,13 +95,9 @@ class MoMuGNN(torch.nn.Module):
             raise ValueError("Number of GNN layers must be greater than 1.")
 
         self.gnns = torch.nn.ModuleList()
-        for layer in range(num_layer):
-            self.gnns.append(GINConv(num_node_features, aggr = "add"))
-        
-        self.pool = global_mean_pool
-            
         self.batch_norms = torch.nn.ModuleList()
         for layer in range(num_layer):
+            self.gnns.append(GINConv(num_node_features, aggr = "add"))
             self.batch_norms.append(torch.nn.BatchNorm1d(nout))
 
     def forward(self, graph_batch):
@@ -109,18 +105,18 @@ class MoMuGNN(torch.nn.Module):
 
         h_list = [x]
         for layer in range(self.num_layer):
+            print(layer)
+            print(edge_index.shape)
+            print(h_list[layer].shape)
             h = self.gnns[layer](h_list[layer], edge_index)
             h = self.batch_norms[layer](h)
             if layer == self.num_layer - 1:
-                h = F.dropout(h, self.drop_ratio, training = self.training)
+                h = F.dropout(h, self.drop_ratio)
             else:
-                h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
+                h = F.dropout(F.relu(h), self.drop_ratio)
             h_list.append(h)
 
-        ### Different implementations of Jk-concat
-        node_representation = h_list[-1]
-        
-        h_graph = self.pool(node_representation, batch)
+        node_representation = h_list[-1]        
         node_counts = batch.bincount()
         node_representation_list = []
 
