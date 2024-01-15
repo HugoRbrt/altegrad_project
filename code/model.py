@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+from torch_geometric.nn import MessagePassing
+from torch_geometric.utils import add_self_loops, degree, softmax
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, GINConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
@@ -34,6 +36,27 @@ class MLPModel(nn.Module):
         x = x * torch.exp(self.temp)
         x = global_max_pool(x, batch)
         return x
+
+class GINConv(MessagePassing):
+    def __init__(self, emb_dim, aggr = "add"):
+        super(GINConv, self).__init__(aggr = "add")
+        #multi-layer perceptron
+        self.mlp = torch.nn.Sequential(torch.nn.Linear(emb_dim, 2*emb_dim), torch.nn.ReLU(), torch.nn.Linear(2*emb_dim, emb_dim))
+        self.edge_embedding1 = torch.nn.Embedding(6, emb_dim)
+        self.edge_embedding2 = torch.nn.Embedding(3, emb_dim)
+
+
+        torch.nn.init.xavier_uniform_(self.edge_embedding1.weight.data)
+        torch.nn.init.xavier_uniform_(self.edge_embedding2.weight.data)
+        self.aggr = aggr
+
+    def forward(self, x, edge_index, edge_attr):
+        edge_index, edge_attr = add_self_loops(edge_index, edge_attr, fill_value=0, num_nodes = x.size(0))
+        edge_attr = edge_attr
+        edge_embeddings = self.edge_embedding1(edge_attr[:,0]) + self.edge_embedding2(edge_attr[:,1])
+        edge_index = edge_index
+        x = x
+        return self.propagate(edge_index, x=x, edge_attr=edge_embeddings)
     
 class GCNModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
