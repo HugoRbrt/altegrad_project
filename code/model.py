@@ -28,7 +28,7 @@ class MLPModel(nn.Module):
         x = self.drop1(x)
         x = self.relu(self.mol_hidden2(x))
         x = self.drop2(x)
-        x = self.mol_hidden4(x)
+        x = self.mol_hidden3(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)
         x = global_max_pool(x, batch)
