@@ -209,10 +209,10 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     solution = pd.DataFrame(similarity)
     solution['ID'] = solution.index
     solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
-    solution.to_csv('validation _results.csv', index=False)
+    solution.to_csv('validation_results.csv', index=False)
     
     if not no_wandb:
         validation_artifact = wandb.Artifact('validation_results'+str(uuid.uuid1()).replace("-",""), type='csv')
-        validation_artifact.add_file('validation _results.csv')
+        validation_artifact.add_file('validation_results.csv')
         wandb.log_artifact(validation_artifact)
         wandb.finish()
