@@ -16,17 +16,18 @@ class MLPModel(nn.Module):
         self.register_parameter( 'temp' , self.temp )
         self.mol_hidden1 = nn.Linear(num_node_features, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nhid)
-        self.mol_hidden3 = nn.Linear(nhid, nhid)
-        self.mol_hidden4 = nn.Linear(nhid, nout)
-
+        self.mol_hidden3 = nn.Linear(nhid, nout)
+        self.drop1 = nn.Dropout(0.2)
+        self.drop2 = nn.Dropout(0.2)
     def forward(self, graph_batch):
         x = graph_batch.x
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         
         x = self.relu(self.mol_hidden1(x))
+        x = self.drop1(x)
         x = self.relu(self.mol_hidden2(x))
-        x = self.relu(self.mol_hidden3(x))
+        x = self.drop2(x)
         x = self.mol_hidden4(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)

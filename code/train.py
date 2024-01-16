@@ -63,10 +63,10 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 {'params': model.graph_encoder.parameters()},
                 {'params': model.text_encoder.parameters(), 'lr': 3e-5}
             ], lr=learning_rate)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=14)
-    # num_warmup_steps = cfg['num_warmup_steps']
-    # num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
-    # scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
+    #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=14)
+    num_warmup_steps = cfg['num_warmup_steps']
+    num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
+    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
 
     epoch = 0
     loss = 0
@@ -93,6 +93,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             optimizer.zero_grad()
             current_loss.backward()
             optimizer.step()
+            scheduler.step()
             loss += current_loss.item()
             
             count_iter += 1
@@ -120,7 +121,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                         attention_mask.to(device))
                 current_loss = contrastive_loss(x_graph, x_text)   
                 val_loss += current_loss.item()
-        scheduler.step()
         
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
