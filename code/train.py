@@ -49,11 +49,14 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     gt = np.load("/kaggle/input/nlplsv3/kaggle/working/token_embedding_dict.npy", allow_pickle=True)[()]
     val_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
     train_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)
-
+    test_cids_dataset = GraphDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='test_cids')
+    test_text_dataset = TextDataset(file_path='/kaggle/input/nlplsv3/kaggle/working/test_text.txt', tokenizer=tokenizer)
+    
     device = "cpu" if cpu else ("cuda" if torch.cuda.is_available() else "cpu")
 
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size // 4, shuffle=False)
 
     model = Model(model_name=model_name, num_node_features=cfg['num_node_features'], nout=cfg['nout'], nhid=cfg['nhid'], graph_hidden_channels=cfg['graph_hidden_channels'], heads=cfg['heads']) # nout = bert model hidden dim
     model.to(device)
@@ -100,13 +103,14 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             if count_iter % printEvery == 0:
                 time2 = time.time()
                 print("Iteration: {0}, Time: {1:.4f} s, training loss: {2:.4f}".format(count_iter,
-                                                                            time2 - time1, loss/(batch_size*printEvery))
+                                                                            time2 - time1, loss/(batch_size*printEvery)))
                 if not no_wandb:
                     wandb.log({
                         "epoch/train": i, 'loss/train': loss/printEvery, 'loss/train2': loss/(batch_size*printEvery),
                     })
                 losses.append(loss)
                 loss = 0 
+        scheduler.step()
         model.eval()       
         val_loss = 0        
         with torch.no_grad(): 
@@ -161,9 +165,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
 
     graph_model = model.get_graph_encoder()
     text_model = model.get_text_encoder()
-
-    test_cids_dataset = GraphDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='test_cids')
-    test_text_dataset = TextDataset(file_path='/kaggle/input/nlplsv3/kaggle/working/test_text.txt', tokenizer=tokenizer)
 
     idx_to_cid = test_cids_dataset.get_idx_to_cid()
 

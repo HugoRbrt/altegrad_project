@@ -8,10 +8,6 @@ from transformers import AutoModel
 class MLPModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
         super(MLPModel, self).__init__()
-        self.nhid = nhid
-        self.nout = nout
-        self.relu = nn.ReLU()
-        self.ln = nn.LayerNorm((nout))
         self.temp = nn.Parameter(torch.Tensor([0.07]))
         self.register_parameter( 'temp' , self.temp )
         self.mol_hidden1 = nn.Linear(num_node_features, nhid)
@@ -29,7 +25,7 @@ class MLPModel(nn.Module):
         x = x * torch.exp(self.temp)
         x = global_max_pool(x, batch)
         return x
-
+    
 class GCNModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
         super(GCNModel, self).__init__()
@@ -45,18 +41,60 @@ class GCNModel(nn.Module):
         self.mol_hidden1 = nn.Linear(graph_hidden_channels, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nhid)
         self.mol_hidden3 = nn.Linear(nhid, nout)
-
     def forward(self, graph_batch):
         x = graph_batch.x
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
-        
         x = self.conv1(x, edge_index)
         x = x.relu()
         x = self.conv2(x, edge_index)
         x = x.relu()
         x = self.conv3(x, edge_index)
         x = global_mean_pool(x, batch)
+        x = self.mol_hidden1(x).relu()
+        x = self.mol_hidden2(x).relu()
+        x = self.mol_hidden3(x)
+        x = self.ln1(x)
+        x = x * torch.exp(self.temp)
+        return x
+
+class GatConv(nn.Module):
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
+        super(GatConv, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm((nout))
+        self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
+        self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
+        self.conv2 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
+        self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
+        self.conv3 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
+        self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
+
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        x1 = self.conv1(x, edge_index)
+        skip_x = self.skip_1(x)  # Prepare skip connection
+        x = skip_x + x1  # Apply skip connection
+        x = self.relu(x)
+        
+        x2 = self.conv2(x, edge_index)
+        skip_x = self.skip_2(x)  # Prepare skip connection
+        x = skip_x + x2  # Apply skip connection
+        x = self.relu(x)
+        
+        x3 = self.conv3(x, edge_index)
+        skip_x = self.skip_3(x)  # Prepare skip connection
+        x = skip_x + x3  # Apply skip connection
+        x = self.relu(x)
+        
+        x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x).relu()
         x = self.mol_hidden3(x)
@@ -175,7 +213,8 @@ class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
         #self.graph_encoder = GINConModel(num_node_features, nout, nhid)
-        self.graph_encoder = MLPModel(num_node_features, nout, nhid)
+        #self.graph_encoder = MLPModel(num_node_features, nout, nhid)
+        self.graph_encoder = GatConv(num_node_features, nout, nhid, graph_hidden_channels, heads)
         self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
