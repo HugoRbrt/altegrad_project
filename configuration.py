@@ -8,7 +8,7 @@ CFG_EXPERIMENTS = {
         'who': GIT_USER,
         'name_exp': "bioMegatron",
         'nb_epochs': 60,
-        'batch_size': 24,
+        'batch_size': 8,
         'learning_rate': 3e-5,
         'model_name': 'EMBO/BioMegatron345mUncased',
         'num_node_features': 300,
