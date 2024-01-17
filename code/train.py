@@ -100,7 +100,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             if count_iter % printEvery == 0:
                 time2 = time.time()
                 print("Iteration: {0}, Time: {1:.4f} s, training loss: {2:.4f}".format(count_iter,
-                                                                            time2 - time1, loss/printEvery))
+                                                                            time2 - time1, loss/(batch_size*printEvery))
                 if not no_wandb:
                     wandb.log({
                         "epoch/train": i, 'loss/train': loss/printEvery, 'loss/train2': loss/(batch_size*printEvery),
