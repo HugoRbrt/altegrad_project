@@ -17,17 +17,13 @@ class MLPModel(nn.Module):
         self.mol_hidden1 = nn.Linear(num_node_features, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nhid)
         self.mol_hidden3 = nn.Linear(nhid, nout)
-        self.drop1 = nn.Dropout(0.2)
-        self.drop2 = nn.Dropout(0.2)
     def forward(self, graph_batch):
         x = graph_batch.x
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         
         x = self.relu(self.mol_hidden1(x))
-        x = self.drop1(x)
         x = self.relu(self.mol_hidden2(x))
-        x = self.drop2(x)
         x = self.mol_hidden3(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)
@@ -166,7 +162,6 @@ class TextEncoder(nn.Module):
     def __init__(self, model_name, hidden_dim):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(model_name)
-        self.linear = nn.Linear(1024, 768)
         # self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
@@ -174,7 +169,7 @@ class TextEncoder(nn.Module):
         #print(encoded_text.last_hidden_state.size())
         # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
         # return pooled_output   
-        return self.linear(encoded_text.last_hidden_state[:,0,:])
+        return encoded_text.last_hidden_state[:,0,:]
     
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):

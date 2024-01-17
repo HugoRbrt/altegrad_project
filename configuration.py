@@ -6,14 +6,14 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
-        'name_exp': "bioMegatron",
-        'nb_epochs': 60,
+        'name_exp': "bioMegatron & MLP 3 layers",
+        'nb_epochs': 15,
         'batch_size': 8,
         'learning_rate': 3e-5,
         'model_name': 'EMBO/BioMegatron345mUncased',
         'num_node_features': 300,
-        'nout':  768,
-        'nhid': 800,
+        'nout':  1024,
+        'nhid': 600,
         'heads': 20,
         'graph_hidden_channels': 300,
         'scheduler': "linear_with_warmup",
