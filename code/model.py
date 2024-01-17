@@ -165,7 +165,8 @@ class AttentionPooling(nn.Module):
 class TextEncoder(nn.Module):
     def __init__(self, model_name, hidden_dim):
         super(TextEncoder, self).__init__()
-        self.bert = AutoModel.from_pretrained(model_name)
+        self.bert = AutoModel.from_pretrained(model_name, hidden_size=hidden_dim)
+        self.linear = nn.Linear(1024, 768)
         # self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
