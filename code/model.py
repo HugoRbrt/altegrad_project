@@ -4,7 +4,12 @@ import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
-
+from peft import (
+    LoraConfig, 
+    get_peft_model, 
+    TaskType,
+    PeftModel
+)
 
 class MLPModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
@@ -196,7 +201,27 @@ class TextEncoder(nn.Module):
         # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
         # return pooled_output   
         return encoded_text.last_hidden_state[:,0,:]
-    
+
+class TextEncoder_lora(nn.Module):
+    def __init__(self, model_name, hidden_dim):
+        super(TextEncoder, self).__init__() 
+#         Define the LoRA Configuration
+        self.lora_config = LoraConfig(
+            r=8, # Rank Number
+            lora_alpha=32, # Alpha (Scaling Factor)
+            lora_dropout=0.05, # Dropout Prob for Lora
+            target_modules=["query", "key","value"], # Which layer to apply LoRA, usually only apply on MultiHead Attention Layer
+            bias='none',
+#             task_type=TaskType.SEQ_CLS # Seqence to Classification Task
+        )
+        self.bert = AutoModel.from_pretrained(model_name)
+        self.peft_model = get_peft_model(self.bert, 
+                            self.lora_config)
+        
+    def forward(self, input_ids, attention_mask):
+        encoded_text = self.peft_model(input_ids, attention_mask=attention_mask)
+        return encoded_text.last_hidden_state[:,0,:]
+ 
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
@@ -207,7 +232,7 @@ class Model(nn.Module):
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
-        text_encoded = self.text_encoder(input_ids, attention_mask)
+        text_encoded = self.TextEncoder_lora(input_ids, attention_mask)
         
         return graph_encoded, text_encoded
     
