@@ -296,7 +296,7 @@ class Model(nn.Module):
         # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
         self.graph_encoder = GraphEncoder_SAGE(num_node_features, nout, nhid, graph_hidden_channels)
         # self.graph_encoder = GraphRGCNConv(num_node_features, nout, nhid)
-        self.text_encoder = TextEncoder(model_name, nout)
+        self.text_encoder = TextEncoder(model_name)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
