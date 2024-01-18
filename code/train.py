@@ -12,6 +12,7 @@ import pandas as pd
 from torch.utils.data import DataLoader as TorchDataLoader
 import numpy as np
 from transformers import AutoTokenizer
+from transformers.optimization import get_linear_schedule_with_warmup
 
 
 CE = torch.nn.CrossEntropyLoss()
@@ -66,7 +67,12 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+    
+    num_warmup_steps = cfg['num_warmup_steps']
+    num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
+    scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
+    
+    scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5)
 
     epoch = 0
     loss = 0
@@ -93,6 +99,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             optimizer.zero_grad()
             current_loss.backward()
             optimizer.step()
+            scheduler_lr.step()
             loss += current_loss.item()
             
             count_iter += 1
@@ -106,7 +113,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                     })
                 losses.append(loss)
                 loss = 0 
-        scheduler.step()
+        
         model.eval()       
         val_loss = 0
         with torch.no_grad():    

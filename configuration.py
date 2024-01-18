@@ -21,10 +21,10 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "GATConv(3) + scheduler + skip + big training",
+        'name_exp': "GATConv(3) + scheduler lr + skip ",
         'scheduler': '',
-        'nb_epochs': 40,
-        'batch_size': 24,
+        'nb_epochs': 20,
+        'batch_size': 32,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
@@ -34,6 +34,7 @@ CFG_EXPERIMENTS = {
         'heads': 20,
         'comment': '',
         'T_max': 10,
+        'num_warmup_steps': 1000,
     },
 }
 
