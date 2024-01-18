@@ -44,7 +44,7 @@ class MLPModel(nn.Module):
 
 class GraphEncoder_SAGE(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
-        super(GraphEncoder_v2, self).__init__()
+        super(GraphEncoder_SAGE, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
