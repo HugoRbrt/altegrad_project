@@ -9,11 +9,13 @@ import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv, SAGEConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
+from peft import (
+    LoraConfig, 
+    get_peft_model, 
+    TaskType,
+    PeftModel
+)
 
-#############################################################################################################
-#############################################################################################################
-#############################################################################################################
-# Define Graph Encoder
 class MLPModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
         super(MLPModel, self).__init__()
@@ -287,14 +289,11 @@ class TextEncoder(nn.Module):
         #print(encoded_text.last_hidden_state.size())
         return encoded_text.last_hidden_state[:,0,:]
     
-#############################################################################################################
-#############################################################################################################
-#############################################################################################################
 class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels,heads):
         super(Model, self).__init__()
         # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
-        self.graph_encoder = GraphEncoder_V2(num_node_features, nout, nhid, graph_hidden_channels,heads)
+        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels,heads)
         # self.graph_encoder = GraphRGCNConv(num_node_features, nout, nhid)
         self.text_encoder = TextEncoder(model_name)
         

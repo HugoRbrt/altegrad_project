@@ -17,6 +17,7 @@ import pandas as pd
 from torch.utils.data import DataLoader as TorchDataLoader
 import numpy as np
 from transformers import AutoTokenizer
+from transformers.optimization import get_linear_schedule_with_warmup
 
 #############################################################################################################
 #############################################################################################################
@@ -79,11 +80,13 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
     
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
-    # Define the lambda function for linear scheduling
-    lambda1 = lambda epoch: 1 - epoch / nb_epochs
-    # Create the scheduler, assuming 'optimizer' is already defined
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda1)
+    num_warmup_steps = cfg['num_warmup_steps']
+    num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
+    scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
+    
+    scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+    
+    scheduler_expo = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=-1, verbose=False)
 
     epoch = 0
     loss = 0
@@ -110,6 +113,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             optimizer.zero_grad()
             current_loss.backward()
             optimizer.step()
+            scheduler_lr.step()
             loss += current_loss.item()
             
             count_iter += 1
@@ -123,8 +127,9 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                     })
                 losses.append(loss)
                 loss = 0 
-        scheduler.step()
-        model.eval()       
+        
+        model.eval()  
+        # scheduler_expo.step()     
         val_loss = 0
         with torch.no_grad():    
             for batch in val_loader:
@@ -160,6 +165,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             print('checkpoint saved to: {}'.format(save_path))
 
     print('Loading in wanddb')
+    
     
     if not no_wandb:        
         model_artifact = wandb.Artifact('model'+str(uuid.uuid1()).replace("-",""), type='model')

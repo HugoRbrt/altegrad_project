@@ -6,9 +6,9 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': 'matteo',
-        'name_exp': "SAGEConv(3) + Linear(3) + scheduler + skip + big training",
+        'name_exp': "GatConv(4) + Linear(4) + linearscheduler + skip + big training",
         'scheduler': '',
-        'nb_epochs': 30,
+        'nb_epochs': 40,
         'batch_size': 24,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
@@ -16,10 +16,8 @@ CFG_EXPERIMENTS = {
         'nout':  768,
         'nhid': 450,
         'graph_hidden_channels': 450,
-        'heads': 0,
+        'heads': 25,
         'comment': 'Guess who is back',
         'T_max': 10,
     },
 }
-
-# scibert_scivocab_uncased
