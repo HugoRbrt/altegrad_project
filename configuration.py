@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'matteo',
         'name_exp': "GatConv(4) + Linear(4) + linearscheduler + skip + big training",
-        'scheduler': '',
+        'scheduler': 'Linear',
         'nb_epochs': 40,
         'batch_size': 24,
         'learning_rate': 2e-5,

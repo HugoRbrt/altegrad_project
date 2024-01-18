@@ -84,9 +84,9 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
     scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
     
-    scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+    # scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     
-    scheduler_expo = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=-1, verbose=False)
+    # scheduler_expo = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=-1, verbose=False)
 
     epoch = 0
     loss = 0
@@ -129,7 +129,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 loss = 0 
         
         model.eval()  
-        # scheduler_expo.step()     
+        scheduler_lr.step()     
         val_loss = 0
         with torch.no_grad():    
             for batch in val_loader:
