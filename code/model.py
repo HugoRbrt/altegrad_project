@@ -204,7 +204,7 @@ class TextEncoder(nn.Module):
 
 class TextEncoder_lora(nn.Module):
     def __init__(self, model_name, hidden_dim):
-        super(TextEncoder, self).__init__() 
+        super(TextEncoder_lora, self).__init__() 
 #         Define the LoRA Configuration
         self.lora_config = LoraConfig(
             r=8, # Rank Number
