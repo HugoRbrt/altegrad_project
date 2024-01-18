@@ -228,11 +228,11 @@ class Model(nn.Module):
         # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
         self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads)
         # self.graph_encoder = GraphRGCNConv(num_node_features, nout, nhid)
-        self.text_encoder = TextEncoder(model_name, nout)
+        self.text_encoder = TextEncoder_lora(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
-        text_encoded = self.TextEncoder_lora(input_ids, attention_mask)
+        text_encoded = self.text_encoder(input_ids, attention_mask)
         
         return graph_encoded, text_encoded
     
