@@ -26,7 +26,7 @@ CFG_EXPERIMENTS = {
         'nb_epochs': 20,
         'batch_size': 32,
         'learning_rate': 2e-5,
-        'model_name': 'allenai/scibert_scivocab_uncased',
+        'model_name': 'roberta-base',
         'num_node_features': 300,
         'nout':  768,
         'nhid': 450,
