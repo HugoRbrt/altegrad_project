@@ -41,6 +41,54 @@ class MLPModel(nn.Module):
         return x
     
 #############################################################################################################
+
+class GraphEncoder_SAGE(nn.Module):
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
+        super(GraphEncoder_v2, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm((nout))
+        
+        # Using SAGEConv instead of GATConv
+        self.conv1 = SAGEConv(num_node_features, graph_hidden_channels)
+        self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels)
+        
+        self.conv2 = SAGEConv(graph_hidden_channels, graph_hidden_channels)
+        self.skip_2 = nn.Linear(graph_hidden_channels, graph_hidden_channels)
+        
+        self.conv3 = SAGEConv(graph_hidden_channels, graph_hidden_channels)
+        self.skip_3 = nn.Linear(graph_hidden_channels, graph_hidden_channels)
+
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        
+        x1 = self.conv1(x, edge_index)
+        skip_x = self.skip_1(x)  # Prepare skip connection
+        x = skip_x + x1  # Apply skip connection
+        x = self.relu(x)
+        
+        x2 = self.conv2(x, edge_index)
+        skip_x = self.skip_2(x)  # Prepare skip connection
+        x = skip_x + x2  # Apply skip connection
+        x = self.relu(x)
+        
+        x3 = self.conv3(x, edge_index)
+        skip_x = self.skip_3(x)  # Prepare skip connection
+        x = skip_x + x3  # Apply skip connection
+        x = self.relu(x)
+        
+        x = global_max_pool(x, batch)
+        x = self.mol_hidden1(x).relu()
+        x = self.mol_hidden2(x)
+        return x
+
+#############################################################################################################
         
 class GraphEncoder_v2(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
@@ -246,7 +294,7 @@ class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
         # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
-        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads)
+        self.graph_encoder = GraphEncoder_SAGE(num_node_features, nout, nhid, graph_hidden_channels)
         # self.graph_encoder = GraphRGCNConv(num_node_features, nout, nhid)
         self.text_encoder = TextEncoder(model_name, nout)
         

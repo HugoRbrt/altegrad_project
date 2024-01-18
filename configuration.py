@@ -4,26 +4,11 @@ GIT_REPO = "altegrad_project"  # Your current git repo
 # Keep free unless you need to acess kaggle datasets. You'll need to modify the remote_training_template.ipynb.
 KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
-    # 0:{  
-    #     'who': 'baptiste',
-    #     'name_exp': "maxpooling + GATv2Conv(3) + skip + distilbert-base-cased",
-    #     'scheduler': 'CosineAnnealingLR',
-    #     'nb_epochs': 15,
-    #     'batch_size': 24,
-    #     'learning_rate': 2e-5,
-    #     'model_name': 'distilbert-base-cased',
-    #     'num_node_features': 300,
-    #     'nout':  768,
-    #     'nhid': 300,
-    #     'graph_hidden_channels': 300,
-    #     'heads': 30,
-    #     'comment': '',
-    # },
     0:{  
-        'who': 'baptiste',
-        'name_exp': "GATConv(3) + scheduler + skip + big training",
+        'who': 'matteo',
+        'name_exp': "SAGEConv(3) + Linear(3) + scheduler + skip + big training",
         'scheduler': '',
-        'nb_epochs': 40,
+        'nb_epochs': 30,
         'batch_size': 24,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
@@ -31,8 +16,8 @@ CFG_EXPERIMENTS = {
         'nout':  768,
         'nhid': 450,
         'graph_hidden_channels': 450,
-        'heads': 20,
-        'comment': '',
+        'heads': 0,
+        'comment': 'Guess who is back',
         'T_max': 10,
     },
 }
