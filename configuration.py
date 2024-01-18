@@ -39,27 +39,6 @@ CFG_EXPERIMENTS = {
     },
 }
 
-
-CFG_EXPERIMENTS = {
-    0:{  
-        'who': GIT_USER,
-        'name_exp': "MLP 15 epoch + scheduler warmup",
-        'nb_epochs': 15,
-        'batch_size': 24,
-        'learning_rate': 2e-5,
-        'model_name': 'distilbert-base-uncased',
-        'num_node_features': 300,
-        'nout':  768,
-        'nhid': 300,
-        'heads': 30,
-        'graph_hidden_channels': 300,
-        'scheduler': "linear_with_warmup",
-        'num_warmup_steps': 1000,
-        'comment': '',
-        
-    },
-}
-
     
 
 
