@@ -19,6 +19,6 @@ CFG_EXPERIMENTS = {
         'heads': 25,
         'comment': 'Guess who is back',
         'T_max': 10,
-        'num_warmup_steps': 0,
+        'num_warmup_steps': 1000,
     },
 }
