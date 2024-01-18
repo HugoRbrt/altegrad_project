@@ -9,12 +9,12 @@ import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv, SAGEConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoModel
-from peft import (
-    LoraConfig, 
-    get_peft_model, 
-    TaskType,
-    PeftModel
-)
+# from peft import (
+#     LoraConfig, 
+#     get_peft_model, 
+#     TaskType,
+#     PeftModel
+# )
 
 class MLPModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
