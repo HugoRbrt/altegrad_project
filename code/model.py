@@ -98,7 +98,6 @@ class GatConv(nn.Module):
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         x = self.ln(x)
-        x = x * torch.exp(self.temp)
         return x
 
 class MoMuGNN(torch.nn.Module):
