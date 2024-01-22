@@ -207,6 +207,7 @@ class TextEncoder(nn.Module):
         #print(encoded_text.last_hidden_state.size())
         # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
         # return pooled_output   
+        print((encoded_text.last_hidden_state[:,0,:]).shape)
         return encoded_text.last_hidden_state[:,0,:]
     
 class Model(nn.Module):
