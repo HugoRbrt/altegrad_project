@@ -69,38 +69,21 @@ class GatConv(nn.Module):
         self.ln = nn.LayerNorm((nout))
         self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
         self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
-        
-        self.conv2 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
-        self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
-        
-        self.conv3 = GATv2Conv(graph_hidden_channels*heads, graph_hidden_channels, heads=heads)
-        self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
-        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
-        self.mol_hidden2 = nn.Linear(nhid, nout)
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nout)
 
     def forward(self, graph_batch):
         x = graph_batch.x
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
+        
         x1 = self.conv1(x, edge_index)
         skip_x = self.skip_1(x)  # Prepare skip connection
         x = skip_x + x1  # Apply skip connection
         x = self.relu(x)
         
-        x2 = self.conv2(x, edge_index)
-        skip_x = self.skip_2(x)  # Prepare skip connection
-        x = skip_x + x2  # Apply skip connection
-        x = self.relu(x)
-        
-        x3 = self.conv3(x, edge_index)
-        skip_x = self.skip_3(x)  # Prepare skip connection
-        x = skip_x + x3  # Apply skip connection
-        x = self.relu(x)
-        
         x = global_max_pool(x, batch)
-        x = self.mol_hidden1(x).relu()
-        x = self.mol_hidden2(x)
+        x = self.mol_hidden1(x)
         x = self.ln(x)
         return x
 
@@ -215,15 +198,15 @@ class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
         #self.graph_encoder = GINConModel(num_node_features, nout, nhid)
-        self.graph_encoder = TextEncoder(model_name, nout)
-        #self.graph_encoder = GatConv(num_node_features, nout, nhid, graph_hidden_channels, heads)
-        self.text_encoder = self.graph_encoder 
+        #self.graph_encoder = MLPModel(num_node_features, nout, nhid)
+        self.graph_encoder = GatConv(num_node_features, nout, nhid, graph_hidden_channels, heads)
+        self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
-        #graph_encoded = self.graph_encoder(graph_batch)
+        graph_encoded = self.graph_encoder(graph_batch)
         text_encoded = self.text_encoder(input_ids, attention_mask)
         
-        return text_encoded, text_encoded
+        return graph_encoded, text_encoded
     
     def get_text_encoder(self):
         return self.text_encoder
