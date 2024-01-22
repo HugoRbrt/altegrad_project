@@ -220,10 +220,10 @@ class Model(nn.Module):
         self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
-        graph_encoded = self.graph_encoder(graph_batch)
+        #graph_encoded = self.graph_encoder(graph_batch)
         text_encoded = self.text_encoder(input_ids, attention_mask)
         
-        return graph_encoded, text_encoded
+        return text_encoded, text_encoded
     
     def get_text_encoder(self):
         return self.text_encoder

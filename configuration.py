@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'name_exp': "maxpooling + GATv2Conv(3) + skip + distilbert-base-uncased",
         'scheduler': 'CosineAnnealingLR',
         'nb_epochs': 15,
-        'batch_size': 96,
+        'batch_size': 120,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
