@@ -194,12 +194,41 @@ class GraphLEConv(nn.Module):
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x
+    
+#############################################################################################################
+import torch.nn as nn
+import torch_geometric.nn as pyg_nn
+
+class GraphEncoderGNN(nn.Module):
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
+        super(GraphEncoderGNN, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm((nout))
+        # Replace GCNConv with GraphConv or another GNN layer
+        self.conv1 = pyg_nn.GraphConv(num_node_features, graph_hidden_channels)
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        
+        x = self.conv1(x, edge_index)
+        x = self.relu(x)
+        x = pyg_nn.global_max_pool(x, batch)  # ensure you import this function
+        x = self.mol_hidden1(x).relu()
+        x = self.mol_hidden2(x)
+        return x
+
      
 #############################################################################################################
 
 class GraphEncoderOG(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
-        super(GraphEncoder, self).__init__()
+        super(GraphEncoder0G, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
@@ -290,10 +319,10 @@ class TextEncoder(nn.Module):
         return encoded_text.last_hidden_state[:,0,:]
     
 class Model(nn.Module):
-    def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels,heads):
+    def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels):
         super(Model, self).__init__()
         # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
-        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels,heads)
+        self.graph_encoder = GraphEncoderGNN(num_node_features, nout, nhid, graph_hidden_channels)
         # self.graph_encoder = GraphRGCNConv(num_node_features, nout, nhid)
         self.text_encoder = TextEncoder(model_name)
         

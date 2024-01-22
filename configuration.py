@@ -7,10 +7,10 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': 'matteo',
-        'name_exp': "GatConv(3) + Linear(3) + linearscheduler + skip + big training",
+        'name_exp': "SMALL Size + GNN(1)",
         'scheduler': 'Linear',
-        'nb_epochs': 40,
-        'batch_size': 24,
+        'nb_epochs': 20,
+        'batch_size': 48,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
