@@ -65,10 +65,8 @@ class GatConv(nn.Module):
         super(GatConv, self).__init__()
         self.nhid = nhid
         self.nout = nout
-        self.relu = nn.ReLU()
         self.ln = nn.LayerNorm((nout))
         self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
-        self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nout)
 
@@ -77,10 +75,7 @@ class GatConv(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         
-        x1 = self.conv1(x, edge_index)
-        skip_x = self.skip_1(x)  # Prepare skip connection
-        x = skip_x + x1  # Apply skip connection
-        x = self.relu(x)
+        x = self.conv1(x, edge_index)
         
         x = global_max_pool(x, batch)
         x = self.mol_hidden1(x)

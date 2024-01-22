@@ -17,7 +17,7 @@ CFG_EXPERIMENTS = {
         'nhid': 300,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
-        'heads': 30,
+        'heads': 1,
         'comment': '',
     },
 }
