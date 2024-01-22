@@ -10,6 +10,8 @@ class MLPModel(nn.Module):
         super(MLPModel, self).__init__()
         self.temp = nn.Parameter(torch.Tensor([0.07]))
         self.register_parameter( 'temp' , self.temp )
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm((nout))
         self.mol_hidden1 = nn.Linear(num_node_features, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nhid)
         self.mol_hidden3 = nn.Linear(nhid, nout)
