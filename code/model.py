@@ -201,12 +201,10 @@ class TextEncoder(nn.Module):
         # self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
-        return torch.zeros((input_ids.size(0), 768))
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
         #print(encoded_text.last_hidden_state.size())
         # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
         # return pooled_output   
-        print((encoded_text.last_hidden_state[:,0,:]).shape)
         return encoded_text.last_hidden_state[:,0,:]
     
 class Model(nn.Module):
@@ -218,10 +216,10 @@ class Model(nn.Module):
         self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
-        graph_encoded = self.graph_encoder(graph_batch)
+        #graph_encoded = self.graph_encoder(graph_batch)
         text_encoded = self.text_encoder(input_ids, attention_mask)
         
-        return graph_encoded, text_encoded
+        return text_encoded, text_encoded
     
     def get_text_encoder(self):
         return self.text_encoder
