@@ -201,6 +201,7 @@ class TextEncoder(nn.Module):
         # self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
+        return torch.zeros((input_ids.size(0), 768))
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
         #print(encoded_text.last_hidden_state.size())
         # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
