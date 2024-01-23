@@ -196,8 +196,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     attention_mask=batch['attention_mask'].to(device_2)):
                 text_embeddings.append(output.tolist())
 
-    similarity = cosine_similarity(text_embeddings.to(device_1), graph_embeddings.to(device_1))
-
+    similarity = cosine_similarity(text_embeddings, graph_embeddings)
     solution = pd.DataFrame(similarity)
     solution['ID'] = solution.index
     solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
@@ -216,8 +215,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         for batch in val_loader:
             for output in graph_model(batch.to(device_1)):
                 graph_embeddings.append(output.tolist())
-            for output in text_model(batch['input_ids'].to(device_1), 
-                                    attention_mask=batch['attention_mask'].to(device_1)):
+            for output in text_model(batch['input_ids'].to(device_2), 
+                                    attention_mask=batch['attention_mask'].to(device_2)):
                 text_embeddings.append(output.tolist())
                 
     similarity = cosine_similarity(text_embeddings, graph_embeddings)
