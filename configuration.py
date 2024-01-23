@@ -21,9 +21,9 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "GAT(3) + scheduler linear + MultiGPU + float16",
+        'name_exp': "GAT(3) + scheduler linear + float16",
         'scheduler': 'lineair',
-        'nb_epochs': 30,
+        'nb_epochs': 1,
         'batch_size': 150,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
