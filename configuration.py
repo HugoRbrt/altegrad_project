@@ -36,7 +36,7 @@ CFG_EXPERIMENTS = {
         'comment': '',
         'T_max': '',
         'device_1': 'cuda:0',
-        'device_2': 'cuda:1',
+        'device_2': 'cuda:0',
     },
 }
 
