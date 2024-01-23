@@ -24,7 +24,7 @@ CFG_EXPERIMENTS = {
         'name_exp': "GAT(3) + scheduler linear + float16",
         'scheduler': 'lineair',
         'nb_epochs': 1,
-        'batch_size': 150,
+        'batch_size': 100,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
