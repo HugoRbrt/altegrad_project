@@ -11,7 +11,7 @@ CFG_EXPERIMENTS = {
     #     'nb_epochs': 15,
     #     'batch_size': 24,
     #     'learning_rate': 2e-5,
-    #     'model_name': 'distilbert-base-cased',
+    #     'model_name': 'distilbert-base-uncased',
     #     'num_node_features': 300,
     #     'nout':  768,
     #     'nhid': 300,
@@ -35,6 +35,8 @@ CFG_EXPERIMENTS = {
         'heads': 20,
         'comment': '',
         'T_max': 10,
+        'device_1': 'cuda:0',
+        'device_2': 'cuda:1',
     },
 }
 

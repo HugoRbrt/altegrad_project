@@ -140,7 +140,35 @@ class GraphLEConv(nn.Module):
         x = self.mol_hidden2(x)
         return x
      
-     
+class GraphConv(nn.Module):
+    def __init__(self, num_node_features, nout, nhid):
+        super(GraphConv, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.conv1 = GCNConv(num_node_features, nhid)
+        self.conv2 = GCNConv(nhid, nhid)
+        self.conv3 = GCNConv(nhid, nhid)
+
+        self.mol_hidden1 = nn.Linear(nhid, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        x = self.conv1(x, edge_index)
+        x = self.relu(x)
+        x = self.conv2(x, edge_index)
+        x = self.relu(x)
+        x = self.conv3(x, edge_index)
+        x = self.relu(x)
+        
+        x = global_max_pool(x, batch)
+        x = self.mol_hidden1(x).relu()
+        x = self.mol_hidden2(x)
+        return x
+    
 class GraphEncoder(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(GraphEncoder, self).__init__()
@@ -223,12 +251,12 @@ class TextEncoder_lora(nn.Module):
         return encoded_text.last_hidden_state[:,0,:]
  
 class Model(nn.Module):
-    def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
+    def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads, device_1, device_2):
         super(Model, self).__init__()
         # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
-        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads)
+        self.graph_encoder = GraphConv(num_node_features, nout, nhid).to(device_1)
         # self.graph_encoder = GraphRGCNConv(num_node_features, nout, nhid)
-        self.text_encoder = TextEncoder_lora(model_name, nout)
+        self.text_encoder = TextEncoder(model_name, nout).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
