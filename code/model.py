@@ -225,8 +225,9 @@ class TextEncoder(nn.Module):
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
-        for param in encoded_text.bert.embeddings.parameters():
-            param.requires_grad = False
+        for name, param in encoded_text.bert.transformer.named_parameters():
+            if 'layer.0' in name or 'layer.1' in name:
+                param.requires_grad = False
         #print(encoded_text.last_hidden_state.size())
         # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
         # return pooled_output   
