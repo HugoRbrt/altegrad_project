@@ -23,7 +23,7 @@ CFG_EXPERIMENTS = {
         'who': 'baptiste',
         'name_exp': "GAT(3) + scheduler linear + float16 + freeze emebdding",
         'scheduler': 'lineair',
-        'nb_epochs': 50,
+        'nb_epochs': 15,
         'batch_size': 100,
         'learning_rate': 2e-5,
         'model_name': 'distilbert-base-uncased',
