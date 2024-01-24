@@ -228,6 +228,9 @@ class TextEncoder(nn.Module):
         for name, param in encoded_text.bert.transformer.named_parameters():
             if 'layer.0' in name or 'layer.1' in name:
                 param.requires_grad = False
+                
+        for param in encoded_text.bert.embeddings.parameters():
+            param.requires_grad = False
         #print(encoded_text.last_hidden_state.size())
         # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
         # return pooled_output   
