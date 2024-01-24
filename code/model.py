@@ -221,13 +221,13 @@ class TextEncoder(nn.Module):
     def __init__(self, model_name, hidden_dim):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(model_name)
-        # for name, param in self.bert.transformer.named_parameters():
-        #     if 'layer.0' in name or 'layer.1' in name:
-        #         param.requires_grad = False
+        for name, param in self.bert.transformer.named_parameters():
+            if 'layer.0' in name or 'layer.1' in name or 'layer.2' in name or 'layer.3' in name or 'layer.4' in name or 'layer.5' in name:
+                param.requires_grad = False
                 
         for param in self.bert.embeddings.parameters():
             param.requires_grad = False
-        self.attentionpooling = AttentionPooling(hidden_dim)
+        # self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
