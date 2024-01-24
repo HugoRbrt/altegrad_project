@@ -225,8 +225,8 @@ class TextEncoder(nn.Module):
             if 'layer.0' in name or 'layer.1' in name:
                 param.requires_grad = False
                 
-        for param in self.bert.bert.embeddings.parameters():
-            param.requires_grad = False
+        # for param in self.bert.bert.embeddings.parameters():
+        #     param.requires_grad = False
         # self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
