@@ -21,7 +21,7 @@ CFG_EXPERIMENTS = {
     # },
     0:{  
         'who': 'baptiste',
-        'name_exp': "GAT(3) + scheduler linear + float16 + freeze 2 first layers + embedding",
+        'name_exp': "GAT(3) + scheduler linear + float16 + freeze 2 first layers",
         'scheduler': 'lineair',
         'nb_epochs': 15,
         'batch_size': 100,
