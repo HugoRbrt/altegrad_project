@@ -222,8 +222,8 @@ class TextEncoder(nn.Module):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(
             name_or_path=model_name,
-            n_head=4,
-            n_layer=3,
+            n_head=12,
+            n_layer=2,
             # hidden_dim=hidden_dim,
             dim=nout,
             )
