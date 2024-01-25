@@ -276,8 +276,8 @@ class Model(nn.Module):
         heads,
         device_1,
         device_2,
-        n_heads_text=12, 
-        n_layers_text=6, 
+        n_heads_text=8, 
+        n_layers_text=4, 
         hidden_dim_text=3072, 
         dim_text=768
         ):

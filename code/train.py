@@ -142,7 +142,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 x_graph, x_text = model(graph_batch.to(device_1), 
                                         input_ids.to(device_2), 
                                         attention_mask.to(device_2))
-            current_loss = hard_contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
+            current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
             optimizer.zero_grad()
             # current_loss.backward()
             # optimizer.step()
