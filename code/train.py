@@ -47,7 +47,11 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     learning_rate =cfg['learning_rate']
     model_name =cfg['model_name']
     
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if cfg['with_fast_tokenizer']:
+        tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+
     gt = np.load("/kaggle/input/nlplsv3/kaggle/working/token_embedding_dict.npy", allow_pickle=True)[()]
     val_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
     train_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)

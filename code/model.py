@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+<<<<<<< HEAD
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoConfig, AutoModel
@@ -10,6 +11,12 @@ from transformers import AutoConfig, AutoModel
 #     TaskType,
 #     PeftModel
 # )
+=======
+from torch_geometric.nn import GCNConv
+from torch_geometric.nn import global_mean_pool
+from transformers import AutoConfig, AutoModel
+
+>>>>>>> main
 
 class MLPModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
@@ -218,21 +225,16 @@ class AttentionPooling(nn.Module):
         return pooled_output
     
 class TextEncoder(nn.Module):
-    def __init__(self, model_name, nout):
+    def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
         super(TextEncoder, self).__init__()
         config = AutoConfig.from_pretrained(
             model_name, 
-            n_heads=12,
-            n_layers=2,
+            n_heads=n_heads_text,
+            n_layers=n_layers_text,
+            hidden_dim=hidden_dim_text,
+            dim=dim_text,
             )
         self.bert = AutoModel.from_pretrained(model_name, config=config)
-        # for name, param in self.bert.transformer.named_parameters():
-        #     if 'layer.0' in name or 'layer.1' in name or 'layer.2' in name or 'layer.3' in name or 'layer.4' in name or 'layer.5' in name:
-        #         param.requires_grad = False
-                
-        # for param in self.bert.embeddings.parameters():
-        #     param.requires_grad = False
-        # self.attentionpooling = AttentionPooling(hidden_dim)
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
@@ -263,12 +265,21 @@ class TextEncoder_lora(nn.Module):
         return encoded_text.last_hidden_state[:,0,:]
  
 class Model(nn.Module):
-    def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads, device_1, device_2):
+    def __init__(
+        self, 
+        model_name, 
+        num_node_features, 
+        nout, 
+        nhid, 
+        graph_hidden_channels, 
+        n_heads_text=12, 
+        n_layers_text=6, 
+        hidden_dim_text=3072, 
+        dim_text=768
+        ):
         super(Model, self).__init__()
-        # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
-        # self.graph_encoder = GraphConv(num_node_features, nout, nhid).to(device_1)
-        self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
-        self.text_encoder = TextEncoder(model_name, nout).to(device_2)
+        self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels)
+        self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
