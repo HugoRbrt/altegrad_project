@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
-        'lr': 2e-4,
+        'lr': 2e-3,
         'name_exp': "GAT(3) + scheduler linear + float16 + lr 2e-4 + freeze 2 first layers + embedding",
         'scheduler': 'lineair',
         'nb_epochs': 15,
@@ -26,7 +26,7 @@ CFG_EXPERIMENTS = {
     },
     1:{  
         'who': 'baptiste',
-        'lr': 2e-5,
+        'lr': 2e-2,
         'name_exp': "GAT(3) + scheduler linear + float16 + lr 2e-5 + freeze 2 first layers + embedding",
         'scheduler': 'lineair',
         'nb_epochs': 15,
