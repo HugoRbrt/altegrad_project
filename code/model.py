@@ -267,7 +267,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
         # self.graph_encoder = GraphConv(num_node_features, nout, nhid).to(device_1)
-        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name, nout).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
