@@ -7,10 +7,10 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
         'learning_rate': 2e-5,
-        'name_exp': "GAT + skip(3) + scheduler linear + float16 + hard contrastive",
+        'name_exp': "GAT + skip(3) + scheduler linear + float16 + batch 200 + freeze 2 first layers + embedding",
         'scheduler': 'lineair',
-        'nb_epochs': 15,
-        'batch_size': 100,
+        'nb_epochs': 70,
+        'batch_size': 200,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
