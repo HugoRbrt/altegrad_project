@@ -120,7 +120,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                                                             time2 - time1, loss/printEvery))
                 if not no_wandb:
                     wandb.log({
-                        "epoch/train": i, 'loss/train': loss/printEvery,
+                        "epoch/train": i, 'loss/train': loss/printEvery, 'loss/train2': loss/(batch_size*printEvery),
                     })
                 losses.append(loss)
                 loss = 0 
@@ -141,11 +141,12 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
                 val_loss += current_loss.item()
         best_validation_loss = min(best_validation_loss, val_loss)
-        print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/len(val_loader)) )
+        print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
         if not no_wandb:
             wandb.log({
                 'epoch/val': i,
                 'loss/val':  val_loss/len(val_loader),
+                'loss/val2':  val_loss/(batch_size*len(val_loader)),
                 'accuract/val': 0,
             })
         if best_validation_loss==val_loss:
