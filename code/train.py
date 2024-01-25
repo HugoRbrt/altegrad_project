@@ -129,7 +129,10 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     for i in range(nb_epochs):
         print('-----EPOCH{}-----'.format(i+1))
         model.train()
-        for batch in train_loader:
+        total_batches = len(train_loader)
+        for i, batch in enumerate(train_loader):
+            if i == total_batches - 1:  # Last batch
+                break
             input_ids = batch.input_ids
             batch.pop('input_ids')
             attention_mask = batch.attention_mask
@@ -139,7 +142,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 x_graph, x_text = model(graph_batch.to(device_1), 
                                         input_ids.to(device_2), 
                                         attention_mask.to(device_2))
-            current_loss = hard_contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
+            current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
             optimizer.zero_grad()
             # current_loss.backward()
             # optimizer.step()
