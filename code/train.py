@@ -14,6 +14,7 @@ import torch
 import uuid
 import os
 import pandas as pd
+from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader as TorchDataLoader
 import numpy as np
 from transformers import AutoTokenizer
@@ -26,6 +27,7 @@ from transformers.optimization import get_linear_schedule_with_warmup
 CE = torch.nn.CrossEntropyLoss()
 
 def contrastive_loss(v1, v2):
+    v1, v2 = v1.float(), v2.float()
     logits = torch.matmul(v1,torch.transpose(v2, 0, 1))
     labels = torch.arange(logits.shape[0], device=v1.device)
     return CE(logits, labels) + CE(torch.transpose(logits, 0, 1), labels)
@@ -57,15 +59,21 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     learning_rate =cfg['learning_rate']
     model_name =cfg['model_name']
     
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if cfg['with_fast_tokenizer']:
+        tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+
     gt = np.load("/kaggle/input/nlplsv3/kaggle/working/token_embedding_dict.npy", allow_pickle=True)[()]
     val_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
     train_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)
     test_cids_dataset = GraphDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='test_cids')
     test_text_dataset = TextDataset(file_path='/kaggle/input/nlplsv3/kaggle/working/test_text.txt', tokenizer=tokenizer)
     
-    device = "cpu" if cpu else ("cuda" if torch.cuda.is_available() else "cpu")
-
+    # device = "cpu" if cpu else ("cuda" if torch.cuda.is_available() else "cpu")
+    
+    device_1  = cfg['device_1']
+    device_2 = cfg['device_2']
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_cids_dataset, batch_size=batch_size // 4, shuffle=False)
@@ -79,6 +87,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
+    
+    scaler = GradScaler()
     
     num_warmup_steps = cfg['num_warmup_steps']
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
@@ -105,14 +115,17 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             attention_mask = batch.attention_mask
             batch.pop('attention_mask')
             graph_batch = batch
-            
-            x_graph, x_text = model(graph_batch.to(device), 
-                                    input_ids.to(device), 
-                                    attention_mask.to(device))
-            current_loss = contrastive_loss(x_graph, x_text)   
+            with autocast():
+                x_graph, x_text = model(graph_batch.to(device_1), 
+                                        input_ids.to(device_2), 
+                                        attention_mask.to(device_2))
+            current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
             optimizer.zero_grad()
-            current_loss.backward()
-            optimizer.step()
+            # current_loss.backward()
+            # optimizer.step()
+            scaler.scale(current_loss).backward()  # Backpropagation
+            scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
+            scaler.update() 
             scheduler_lr.step()
             loss += current_loss.item()
             
@@ -138,10 +151,10 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 attention_mask = batch.attention_mask
                 batch.pop('attention_mask')
                 graph_batch = batch
-                x_graph, x_text = model(graph_batch.to(device), 
-                                        input_ids.to(device), 
-                                        attention_mask.to(device))
-                current_loss = contrastive_loss(x_graph, x_text)   
+                x_graph, x_text = model(graph_batch.to(device_1), 
+                                        input_ids.to(device_2), 
+                                        attention_mask.to(device_2))
+                current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
                 val_loss += current_loss.item()
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
@@ -191,17 +204,16 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     with torch.no_grad():
         graph_embeddings = []
         for batch in test_loader:
-            for output in graph_model(batch.to(device)):
+            for output in graph_model(batch.to(device_1)):
                 graph_embeddings.append(output.tolist())
 
         text_embeddings = []
         for batch in test_text_loader:
-            for output in text_model(batch['input_ids'].to(device), 
-                                    attention_mask=batch['attention_mask'].to(device)):
+            for output in text_model(batch['input_ids'].to(device_2), 
+                                    attention_mask=batch['attention_mask'].to(device_2)):
                 text_embeddings.append(output.tolist())
 
     similarity = cosine_similarity(text_embeddings, graph_embeddings)
-
     solution = pd.DataFrame(similarity)
     solution['ID'] = solution.index
     solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
@@ -218,10 +230,10 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         graph_embeddings = []
         text_embeddings = []
         for batch in val_loader:
-            for output in graph_model(batch.to(device)):
+            for output in graph_model(batch.to(device_1)):
                 graph_embeddings.append(output.tolist())
-            for output in text_model(batch['input_ids'].to(device), 
-                                    attention_mask=batch['attention_mask'].to(device)):
+            for output in text_model(batch['input_ids'].to(device_2), 
+                                    attention_mask=batch['attention_mask'].to(device_2)):
                 text_embeddings.append(output.tolist())
                 
     similarity = cosine_similarity(text_embeddings, graph_embeddings)

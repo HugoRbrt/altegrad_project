@@ -8,13 +8,14 @@ from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv, SAGEConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
-from transformers import AutoModel
+from transformers import AutoConfig, AutoModel
 # from peft import (
 #     LoraConfig, 
 #     get_peft_model, 
 #     TaskType,
 #     PeftModel
 # )
+
 
 class MLPModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
@@ -309,22 +310,39 @@ class AttentionPooling(nn.Module):
 #############################################################################################################
 # Define Text Encoder
 class TextEncoder(nn.Module):
-    def __init__(self, model_name):
+    def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
         super(TextEncoder, self).__init__()
-        self.bert = AutoModel.from_pretrained(model_name)
+        config = AutoConfig.from_pretrained(
+            model_name, 
+            n_heads=n_heads_text,
+            n_layers=n_layers_text,
+            hidden_dim=hidden_dim_text,
+            dim=dim_text,
+            )
+        self.bert = AutoModel.from_pretrained(model_name, config=config)
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
+        
         #print(encoded_text.last_hidden_state.size())
         return encoded_text.last_hidden_state[:,0,:]
     
 class Model(nn.Module):
-    def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels):
+    def __init__(
+        self, 
+        model_name, 
+        num_node_features, 
+        nout, 
+        nhid, 
+        graph_hidden_channels, 
+        n_heads_text=12, 
+        n_layers_text=6, 
+        hidden_dim_text=3072, 
+        dim_text=768
+        ):
         super(Model, self).__init__()
-        # self.graph_encoder = MLPModel(num_node_features, nout, nhid)
-        self.graph_encoder = GraphEncoderGNN(num_node_features, nout, nhid, graph_hidden_channels)
-        # self.graph_encoder = GraphRGCNConv(num_node_features, nout, nhid)
-        self.text_encoder = TextEncoder(model_name)
+        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels)
+        self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
