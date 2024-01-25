@@ -41,7 +41,6 @@ def hard_contrastive_loss(v1, v2, t=0.07, beta=0.5):
 
     # Hard sampling loss calculation
     hard_loss = -torch.log(pos_exp.sum() / (pos_exp.sum() + Neg))
-    print(hard_loss.shape)
     return hard_loss
 
 def run_experiment(cfg, cpu=False, no_wandb=False):
@@ -130,8 +129,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         print('-----EPOCH{}-----'.format(i+1))
         model.train()
         total_batches = len(train_loader)
-        for i, batch in enumerate(train_loader):
-            if i == total_batches - 1:  # Last batch
+        for j, batch in enumerate(train_loader):
+            if j == total_batches - 1:  # Last batch
                 break
             input_ids = batch.input_ids
             batch.pop('input_ids')
