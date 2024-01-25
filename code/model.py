@@ -218,9 +218,15 @@ class AttentionPooling(nn.Module):
         return pooled_output
     
 class TextEncoder(nn.Module):
-    def __init__(self, model_name, hidden_dim):
+    def __init__(self, model_name, nout):
         super(TextEncoder, self).__init__()
-        self.bert = AutoModel.from_pretrained(model_name)
+        self.bert = AutoModel.from_pretrained(
+            name_or_path=model_name,
+            n_head=4,
+            n_layer=3,
+            # hidden_dim=hidden_dim,
+            dim=nout,
+            )
         for name, param in self.bert.transformer.named_parameters():
             if 'layer.0' in name or 'layer.1' in name:
                 param.requires_grad = False
