@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
-from transformers import AutoModel
+from transformers import AutoConfig, AutoModel
 # from peft import (
 #     LoraConfig, 
 #     get_peft_model, 
@@ -220,13 +220,12 @@ class AttentionPooling(nn.Module):
 class TextEncoder(nn.Module):
     def __init__(self, model_name, nout):
         super(TextEncoder, self).__init__()
-        self.bert = AutoModel.from_pretrained(
-            pretrained_model_name_or_path=model_name,
-            n_head=12,
-            n_layer=2,
-            # hidden_dim=hidden_dim,
-            dim=nout,
+        config = AutoConfig.from_pretrained(
+            model_name, 
+            n_heads=12,
+            n_layers=2,
             )
+        self.bert = AutoModel.from_pretrained(model_name, config=config)
         # for name, param in self.bert.transformer.named_parameters():
         #     if 'layer.0' in name or 'layer.1' in name or 'layer.2' in name or 'layer.3' in name or 'layer.4' in name or 'layer.5' in name:
         #         param.requires_grad = False
