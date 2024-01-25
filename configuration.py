@@ -6,12 +6,11 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
-        'lr': 2e-5,
-        'name_exp': "GAT(3) + scheduler linear + float16 +n_head=12 + n_layer=2,",
+        'learning_rate': 2e-5,
+        'name_exp': "GAT(3) + scheduler linear + float16 + n_head=12 + n_layer=2",
         'scheduler': 'lineair',
         'nb_epochs': 15,
         'batch_size': 100,
-        'learning_rate': '',
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,

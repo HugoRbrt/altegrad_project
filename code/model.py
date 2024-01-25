@@ -221,14 +221,14 @@ class TextEncoder(nn.Module):
     def __init__(self, model_name, nout):
         super(TextEncoder, self).__init__()
         self.bert = AutoModel.from_pretrained(
-            name_or_path=model_name,
+            pretrained_model_name_or_path=model_name,
             n_head=12,
             n_layer=2,
             # hidden_dim=hidden_dim,
             dim=nout,
             )
         # for name, param in self.bert.transformer.named_parameters():
-        #     if 'layer.0' in name or 'layer.1' in name:
+        #     if 'layer.0' in name or 'layer.1' in name or 'layer.2' in name or 'layer.3' in name or 'layer.4' in name or 'layer.5' in name:
         #         param.requires_grad = False
                 
         # for param in self.bert.embeddings.parameters():

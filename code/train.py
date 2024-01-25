@@ -44,6 +44,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         )
     nb_epochs = cfg['nb_epochs']
     batch_size = cfg['batch_size']
+    learning_rate =cfg['learning_rate']
     model_name =cfg['model_name']
     
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -67,7 +68,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     # model.to(device)
     print(model)
 
-    optimizer = optim.AdamW(model.parameters(), lr=cfg['lr'],
+    optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
     
@@ -109,7 +110,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             scaler.scale(current_loss).backward()  # Backpropagation
             scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
             scaler.update() 
-            # scheduler_lr.step()
+            scheduler_lr.step()
             loss += current_loss.item()
             
             count_iter += 1
