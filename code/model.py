@@ -274,14 +274,16 @@ class Model(nn.Module):
         nhid, 
         graph_hidden_channels, 
         heads,
+        device_1,
+        device_2,
         n_heads_text=12, 
         n_layers_text=6, 
         hidden_dim_text=3072, 
         dim_text=768
         ):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_v2(model_name, num_node_features, nout, nhid, graph_hidden_channels, heads)
-        self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text)
+        self.graph_encoder = GraphEncoder_v2(model_name, num_node_features, nout, nhid, graph_hidden_channels, heads).device(device_1)
+        self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).device(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
