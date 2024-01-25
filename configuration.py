@@ -26,6 +26,7 @@ CFG_EXPERIMENTS = {
         'dim_text':768,
         'device_1': 'cuda:0',
         'device_2': 'cuda:0',
+        'with_fast_tokenizer': False,
     },
     # 1:{  
     #     'who': 'baptiste',
