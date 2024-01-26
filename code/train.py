@@ -78,10 +78,9 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_cids_dataset, batch_size=batch_size // 4, shuffle=False)
     test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size // 4, shuffle=False)
-
-
-    model = Model(model_name=model_name, num_node_features=cfg['num_node_features'], nout=cfg['nout'], nhid=cfg['nhid'], graph_hidden_channels=cfg['graph_hidden_channels']) # nout = bert model hidden dim
-    model.to(device)
+                    
+    model = Model(model_name=model_name, num_node_features=cfg['num_node_features'], nout=cfg['nout'], nhid=cfg['nhid'], graph_hidden_channels=cfg['graph_hidden_channels'],n_heads_text=cfg['n_heads_text'],n_layers_text=['n_layers_text'],hidden_dim_text=cfg['hidden_dim_text'],dim_text=cfg['dim_text'],heads=cfg['heads']) # nout = bert model hidden dim
+    #model.to(device)
     print(model)
 
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
