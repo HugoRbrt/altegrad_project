@@ -10,7 +10,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 2e-5,
         'name_exp': " GAT(3) + skip(3) + scheduler linear +BIGBIG",
         'scheduler': 'lineair',
-        'nb_epochs': 70,
+        'nb_epochs': 80,
         'batch_size': 60,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
@@ -27,5 +27,6 @@ CFG_EXPERIMENTS = {
         'dim_text':768,
         'device_1': 'cuda:0',
         'device_2': 'cuda:0',
+        'with_fast_tokenizer': True
     },
 }
