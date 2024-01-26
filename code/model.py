@@ -93,6 +93,69 @@ class GraphEncoder_SAGE(nn.Module):
 
 #############################################################################################################
         
+import torch.nn as nn
+from torch_geometric.nn import GATConv, global_max_pool, SAGEConv, LEConv
+
+class GraphEncoder_v3(nn.Module):
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
+        super(GraphEncoder_v3, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm(nout)
+        self.conv1 = GATConv(num_node_features, graph_hidden_channels, heads=heads)
+        self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
+        
+        self.sage_conv = SAGEConv(graph_hidden_channels * heads, graph_hidden_channels, root_weight=True)
+        
+        self.conv2 = GATConv(graph_hidden_channels, graph_hidden_channels, heads=heads)
+        self.skip_2 = nn.Linear(graph_hidden_channels, graph_hidden_channels * heads)
+        
+        self.le_conv = LEConv(graph_hidden_channels * heads, graph_hidden_channels)
+        
+        self.conv3 = GATConv(graph_hidden_channels, graph_hidden_channels, heads=heads)
+        self.skip_3 = nn.Linear(graph_hidden_channels, graph_hidden_channels * heads)
+
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        
+        # First GATConv layer
+        x1 = self.conv1(x, edge_index)
+        skip_x = self.skip_1(x)  # Prepare skip connection
+        x = skip_x + x1  # Apply skip connection
+        x = self.relu(x)
+
+        # SageConv layer
+        x = self.sage_conv(x, edge_index)
+        x = self.relu(x)
+
+        # Second GATConv layer
+        x2 = self.conv2(x, edge_index)
+        skip_x = self.skip_2(x)  # Prepare skip connection
+        x = skip_x + x2  # Apply skip connection
+        x = self.relu(x)
+
+        # LEConv layer
+        x = self.le_conv(x, edge_index)
+        x = self.relu(x)
+        
+        # Third GATConv layer
+        x3 = self.conv3(x, edge_index)
+        skip_x = self.skip_3(x)  # Prepare skip connection
+        x = skip_x + x3  # Apply skip connection
+        x = self.relu(x)
+        
+        x = global_max_pool(x, batch)
+        x = self.mol_hidden1(x).relu()
+        x = self.mol_hidden2(x)
+        return x
+
+#############################################################################################################
 class GraphEncoder_v2(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(GraphEncoder_v2, self).__init__()
@@ -217,7 +280,7 @@ class GraphEncoderGNN(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         
-        x = self.conv1(x, edge_index)
+        x = self.conv1(xgigit , edge_index)
         x = self.relu(x)
         x = pyg_nn.global_max_pool(x, batch)  # ensure you import this function
         x = self.mol_hidden1(x).relu()
@@ -323,7 +386,6 @@ class TextEncoder(nn.Module):
         
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
-        
         #print(encoded_text.last_hidden_state.size())
         return encoded_text.last_hidden_state[:,0,:]
     
@@ -338,10 +400,11 @@ class Model(nn.Module):
         n_heads_text=12, 
         n_layers_text=6, 
         hidden_dim_text=3072, 
-        dim_text=768
+        dim_text=768,
+        heads
         ):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels)
+        self.graph_encoder = GraphEncoder_v3(num_node_features, nout, nhid, graph_hidden_channels,heads)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text)
         
     def forward(self, graph_batch, input_ids, attention_mask):
