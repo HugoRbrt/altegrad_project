@@ -391,18 +391,8 @@ class TextEncoder(nn.Module):
     
 class Model(nn.Module):
     def __init__(
-        self, 
-        model_name, 
-        num_node_features, 
-        nout, 
-        nhid, 
-        graph_hidden_channels, 
-        n_heads_text=12, 
-        n_layers_text=6, 
-        hidden_dim_text=3072, 
-        dim_text=768,
-        heads
-        ):
+        self,model_name,num_node_features,nout,nhid,graph_hidden_channels,n_heads_text=12,n_layers_text=6, 
+        hidden_dim_text=3072,dim_text=768,heads=30):
         super(Model, self).__init__()
         self.graph_encoder = GraphEncoder_v3(num_node_features, nout, nhid, graph_hidden_channels,heads)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text)
