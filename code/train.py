@@ -129,9 +129,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         print('-----EPOCH{}-----'.format(i+1))
         model.train()
         total_batches = len(train_loader)
-        for j, batch in enumerate(train_loader):
-            if j == total_batches - 1:  # Last batch
-                break
+        for batch in train_loader:
             input_ids = batch.input_ids
             batch.pop('input_ids')
             attention_mask = batch.attention_mask

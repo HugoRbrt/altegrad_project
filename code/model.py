@@ -276,10 +276,10 @@ class Model(nn.Module):
         heads,
         device_1,
         device_2,
-        n_heads_text=8, 
-        n_layers_text=4, 
-        hidden_dim_text=3072, 
-        dim_text=768
+        n_heads_text, 
+        n_layers_text, 
+        hidden_dim_text, 
+        dim_text,
         ):
         super(Model, self).__init__()
         self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
