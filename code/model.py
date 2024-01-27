@@ -237,7 +237,7 @@ class GraphGATv2Conv(nn.Module):
         self.relu = nn.ReLU()
         self.conv1 = GATv2Conv(num_node_features, graph_hidden_channels, heads=heads)
         self.conv2 = GATv2Conv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
-        self.conv3 = GATv2Conv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+        self.conv3 = SuperGATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
