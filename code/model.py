@@ -1,14 +1,14 @@
 # Authors: Baptiste CALLARD, Matteo MARENGO, Hugo ROBERT
 #############################################################################################################
 #############################################################################################################
-#############################################################################################################
 # Import Libraries
 import torch
-from torch import nn
+from torch.nn import nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv, SAGEConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoConfig, AutoModel
+import torch_geometric.nn as pyg_nn
 # from peft import (
 #     LoraConfig, 
 #     get_peft_model, 
@@ -16,7 +16,49 @@ from transformers import AutoConfig, AutoModel
 #     PeftModel
 # )
 
+#############################################################################################################
+#############################################################################################################
 
+#############################################################################################################
+# Baseline Model Graph Encoder
+class GraphEncoder_ORIGINAL(nn.Module):
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
+        super(GraphEncoder_ORIGINAL, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm((nout))
+        self.conv1 = GCNConv(num_node_features, graph_hidden_channels)
+        self.conv2 = GCNConv(graph_hidden_channels, graph_hidden_channels)
+        self.conv3 = GCNConv(graph_hidden_channels, graph_hidden_channels)
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        # Get the node features and the adjacency list
+        x = graph_batch.x
+        # Get Edge Index Information
+        edge_index = graph_batch.edge_index
+        # Get Batch Information
+        batch = graph_batch.batch
+        # Three GCNConv layers
+        x = self.conv1(x, edge_index)
+        x = x.relu()
+        x = self.conv2(x, edge_index)
+        x = x.relu()
+        x = self.conv3(x, edge_index)
+        # Global mean pooling
+        # It aggregates all node features into a single graph feature vector
+        x = global_mean_pool(x, batch)
+        # Two linear layers
+        # The first one transforms the graph feature vector into a hidden vector
+        x = self.mol_hidden1(x).relu()
+        # The second one transforms the hidden vector into a vector of size nout
+        x = self.mol_hidden2(x)
+        return x
+    
+#############################################################################################################
+# MLP Model Graph Encoder
 class MLPModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
         super(MLPModel, self).__init__()
@@ -44,7 +86,7 @@ class MLPModel(nn.Module):
         return x
     
 #############################################################################################################
-
+# SAGE Conv Model Graph Encoder + SKIP Connections
 class GraphEncoder_SAGE(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
         super(GraphEncoder_SAGE, self).__init__()
@@ -92,13 +134,10 @@ class GraphEncoder_SAGE(nn.Module):
         return x
 
 #############################################################################################################
-        
-import torch.nn as nn
-from torch_geometric.nn import GATConv, global_max_pool, SAGEConv, LEConv
-
-class GraphEncoder_v3(nn.Module):
+# GAT + SAGE + LE Conv Model Graph Encoder + SKIP Connections
+class GraphEncoder_COMBINED(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
-        super(GraphEncoder_v3, self).__init__()
+        super(GraphEncoder_COMBINED, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
@@ -117,7 +156,8 @@ class GraphEncoder_v3(nn.Module):
         self.skip_3 = nn.Linear(graph_hidden_channels, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
-        self.mol_hidden2 = nn.Linear(nhid, nout)
+        self.mol_hidden2 = nn.Linear(nhid, nhid)
+        self.mol_hidden3 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch):
         x = graph_batch.x
@@ -151,14 +191,18 @@ class GraphEncoder_v3(nn.Module):
         x = self.relu(x)
         
         x = global_max_pool(x, batch)
+        x = self.ln(x)
+
         x = self.mol_hidden1(x).relu()
-        x = self.mol_hidden2(x)
+        x = self.mol_hidden2(x).relu()
+        x = self.mol_hidden3(x)
         return x
 
 #############################################################################################################
-class GraphEncoder_v2(nn.Module):
+# GAT Conv Model Graph Encoder + SKIP Connections
+class GraphEncoder_GAT(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
-        super(GraphEncoder_v2, self).__init__()
+        super(GraphEncoder_GAT, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
@@ -198,7 +242,7 @@ class GraphEncoder_v2(nn.Module):
         return x
     
 #############################################################################################################
-
+# RGCN Conv Model Graph Encoder
 class GraphRGCNConv(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
         super(GraphRGCNConv, self).__init__()
@@ -229,7 +273,7 @@ class GraphRGCNConv(nn.Module):
         return x
    
 #############################################################################################################
-   
+# LE CONV Model Graph Encoder
 class GraphLEConv(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
         super(GraphLEConv, self).__init__()
@@ -260,9 +304,7 @@ class GraphLEConv(nn.Module):
         return x
     
 #############################################################################################################
-import torch.nn as nn
-import torch_geometric.nn as pyg_nn
-
+# SMALL Graph Encoder
 class GraphEncoderGNN(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
         super(GraphEncoderGNN, self).__init__()
@@ -287,41 +329,12 @@ class GraphEncoderGNN(nn.Module):
         x = self.mol_hidden2(x)
         return x
 
-     
+         
 #############################################################################################################
-
-class GraphEncoderOG(nn.Module):
-    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
-        super(GraphEncoder0G, self).__init__()
-        self.nhid = nhid
-        self.nout = nout
-        self.relu = nn.ReLU()
-        self.ln = nn.LayerNorm((nout))
-        self.conv1 = GCNConv(num_node_features, graph_hidden_channels)
-        self.conv2 = GCNConv(graph_hidden_channels, graph_hidden_channels)
-        self.conv3 = GCNConv(graph_hidden_channels, graph_hidden_channels)
-        self.mol_hidden1 = nn.Linear(graph_hidden_channels, nhid)
-        self.mol_hidden2 = nn.Linear(nhid, nout)
-
-    def forward(self, graph_batch):
-        x = graph_batch.x
-        edge_index = graph_batch.edge_index
-        batch = graph_batch.batch
-        x = self.conv1(x, edge_index)
-        x = x.relu()
-        x = self.conv2(x, edge_index)
-        x = x.relu()
-        x = self.conv3(x, edge_index)
-        x = global_mean_pool(x, batch)
-        x = self.mol_hidden1(x).relu()
-        x = self.mol_hidden2(x)
-        return x
-    
-#############################################################################################################
-    
-class GraphEncoder(nn.Module):
+# GAT Conv Model Graph Encoder + No SKIP Connections
+class GraphEncoder_GAT_wSKIP(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
-        super(GraphEncoder, self).__init__()
+        super(GraphEncoder_GAT_wSKIP, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
@@ -348,7 +361,6 @@ class GraphEncoder(nn.Module):
         return x
     
 #############################################################################################################
-    
 class AttentionPooling(nn.Module):
     def __init__(self, hidden_dim):
         super(AttentionPooling, self).__init__()
@@ -370,7 +382,6 @@ class AttentionPooling(nn.Module):
     
 #############################################################################################################
 #############################################################################################################
-#############################################################################################################
 # Define Text Encoder
 class TextEncoder(nn.Module):
     def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
@@ -389,12 +400,35 @@ class TextEncoder(nn.Module):
         #print(encoded_text.last_hidden_state.size())
         return encoded_text.last_hidden_state[:,0,:]
     
+
+#############################################################################################################
+# class TextEncoder_ORIGINAL(nn.Module):
+#     def __init__(self, model_name):
+#         super(TextEncoder_ORIGINAL, self).__init__()
+#         self.bert = AutoModel.from_pretrained(model_name)
+        
+#     def forward(self, input_ids, attention_mask):
+#         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
+#         #print(encoded_text.last_hidden_state.size())
+#         return encoded_text.last_hidden_state[:,0,:]
+    
+#############################################################################################################
+#############################################################################################################
 class Model(nn.Module):
     def __init__(
-        self,model_name,num_node_features,nout,nhid,graph_hidden_channels,n_heads_text=12,n_layers_text=6, 
-        hidden_dim_text=3072,dim_text=768,heads=30):
+        self,
+        model_name,
+        num_node_features,
+        nout,
+        nhid,
+        graph_hidden_channels,
+        n_heads_text,
+        n_layers_text, 
+        hidden_dim_text,
+        dim_text,
+        heads):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_v3(num_node_features, nout, nhid, graph_hidden_channels,heads)
+        self.graph_encoder = GraphEncoder_COMBINED(num_node_features, nout, nhid, graph_hidden_channels,heads)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text)
         
     def forward(self, graph_batch, input_ids, attention_mask):
@@ -408,3 +442,21 @@ class Model(nn.Module):
     
     def get_graph_encoder(self):
         return self.graph_encoder
+    
+#############################################################################################################
+# class Model_ORGINAL(nn.Module):
+#     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels):
+#         super(Model_ORGINAL, self).__init__()
+#         self.graph_encoder = GraphEncoder_ORIGINAL(num_node_features, nout, nhid, graph_hidden_channels)
+#         self.text_encoder = TextEncoder_ORIGINAL(model_name)
+        
+#     def forward(self, graph_batch, input_ids, attention_mask):
+#         graph_encoded = self.graph_encoder(graph_batch)
+#         text_encoded = self.text_encoder(input_ids, attention_mask)
+#         return graph_encoded, text_encoded
+    
+#     def get_text_encoder(self):
+#         return self.text_encoder
+    
+#     def get_graph_encoder(self):
+#         return self.graph_encoder
