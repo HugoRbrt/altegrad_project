@@ -170,15 +170,44 @@ class GraphConv(nn.Module):
         x = self.mol_hidden2(x)
         return x
     
-class GraphEncoder(nn.Module):
+class GraphGATConv(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
-        super(GraphEncoder, self).__init__()
+        super(GraphGATConv, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
         self.conv1 = GATConv(num_node_features, graph_hidden_channels, heads=heads)
         self.conv2 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.conv3 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        x = self.conv1(x, edge_index)
+        x = self.relu(x)
+        x = self.conv2(x, edge_index)
+        x = self.relu(x)
+        x = self.conv3(x, edge_index)
+        x = self.relu(x)
+        
+        x = global_max_pool(x, batch)
+        x = self.mol_hidden1(x).relu()
+        x = self.mol_hidden2(x)
+        return x
+
+class GraphSuperGATConv(nn.Module):
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
+        super(GraphSuperGATConv, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.conv1 = SuperGATConv(num_node_features, graph_hidden_channels, heads=heads)
+        self.conv2 = SuperGATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+        self.conv3 = SuperGATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
@@ -282,7 +311,7 @@ class Model(nn.Module):
         dim_text,
         ):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        self.graph_encoder = GraphSuperGATConv(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
