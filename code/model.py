@@ -191,8 +191,7 @@ class GraphEncoder_COMBINED(nn.Module):
         x = self.relu(x)
         
         x = global_max_pool(x, batch)
-        x = self.ln(x)
-
+        
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x).relu()
         x = self.mol_hidden3(x)
