@@ -138,7 +138,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 loss = 0 
         
         model.eval()  
-        scheduler_lr.step()     
+        # scheduler_lr.step()     
         val_loss = 0
         with torch.no_grad():    
             for batch in val_loader:
