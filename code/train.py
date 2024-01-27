@@ -9,6 +9,7 @@ import torch
 import uuid
 import os
 import pandas as pd
+from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader as TorchDataLoader
 import numpy as np
 from transformers import AutoTokenizer
@@ -18,10 +19,29 @@ from transformers.optimization import get_linear_schedule_with_warmup
 CE = torch.nn.CrossEntropyLoss()
 
 def contrastive_loss(v1, v2):
+    v1, v2 = v1.float(), v2.float()
     logits = torch.matmul(v1,torch.transpose(v2, 0, 1))
     labels = torch.arange(logits.shape[0], device=v1.device)
     return CE(logits, labels) + CE(torch.transpose(logits, 0, 1), labels)
 
+def hard_contrastive_loss(v1, v2, t=0.07, beta=0.5):
+    v1, v2 = v1.float(), v2.float()
+    logits = torch.matmul(v1, v2.T) / t
+    N = logits.size(1) - 1  # Assuming square matrix excluding self-comparison
+
+    # Exponential for positive and negative samples
+    pos_exp = torch.exp(logits.diag())
+    neg_exp = torch.exp(logits.fill_diagonal_(0))
+
+    # Calculate the hard sampling weights
+    reweight = (beta * neg_exp) / neg_exp.mean()
+#     print(neg_exp.shape)
+    # Calculate the hard negative samples with reweighting
+    Neg = torch.max(((-N * pos_exp + reweight * neg_exp).sum()), torch.tensor(1e-12).to(v1.device))
+
+    # Hard sampling loss calculation
+    hard_loss = -torch.log(pos_exp.sum() / (pos_exp.sum() + Neg))
+    return hard_loss
 
 def run_experiment(cfg, cpu=False, no_wandb=False):
     """this function allows to run an experiments with the given configuration in cfg
@@ -45,31 +65,57 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     learning_rate =cfg['learning_rate']
     model_name =cfg['model_name']
     
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if cfg['with_fast_tokenizer']:
+        tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+
     gt = np.load("/kaggle/input/nlplsv3/kaggle/working/token_embedding_dict.npy", allow_pickle=True)[()]
     val_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='val', tokenizer=tokenizer)
     train_dataset = GraphTextDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='train', tokenizer=tokenizer)
     test_cids_dataset = GraphDataset(root='/kaggle/input/nlplsv3/kaggle/working/', gt=gt, split='test_cids')
     test_text_dataset = TextDataset(file_path='/kaggle/input/nlplsv3/kaggle/working/test_text.txt', tokenizer=tokenizer)
     
-    device = "cpu" if cpu else ("cuda" if torch.cuda.is_available() else "cpu")
-
+    # device = "cpu" if cpu else ("cuda" if torch.cuda.is_available() else "cpu")
+    
+    device_1  = cfg['device_1']
+    device_2 = cfg['device_2']
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_cids_dataset, batch_size=batch_size // 4, shuffle=False)
     test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size // 4, shuffle=False)
 
-    model = Model(model_name=model_name, num_node_features=cfg['num_node_features'], nout=cfg['nout'], nhid=cfg['nhid'], graph_hidden_channels=cfg['graph_hidden_channels'], heads=cfg['heads']) # nout = bert model hidden dim
-    model.to(device)
+
+    model = Model(
+        model_name=model_name, 
+        num_node_features=cfg['num_node_features'], 
+        nout=cfg['nout'], 
+        nhid=cfg['nhid'], 
+        graph_hidden_channels=cfg['graph_hidden_channels'], 
+        heads=cfg['heads'], 
+        device_1=device_1, 
+        device_2=device_2, 
+        n_heads_text=cfg['n_heads_text'], 
+        n_layers_text=cfg['n_layers_text'], 
+        hidden_dim_text=cfg['hidden_dim_text'], 
+        dim_text=cfg['dim_text']
+        ) # nout = bert model hidden dim
+    # model.to(device)
     print(model)
 
-    optimizer = optim.Adam([
-                {'params': model.graph_encoder.parameters()},
-                {'params': model.text_encoder.parameters(), 'lr': 3e-5}
-            ], lr=learning_rate)
-    #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=14)
+    optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
+                                    betas=(0.9, 0.999),
+                                    weight_decay=0.01)
+    
+    scaler = GradScaler()
+    
     num_warmup_steps = cfg['num_warmup_steps']
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
-    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
+    scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
+    
+    scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+    
+    scheduler_expo = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=-1, verbose=False)
 
     epoch = 0
     loss = 0
@@ -82,21 +128,25 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     for i in range(nb_epochs):
         print('-----EPOCH{}-----'.format(i+1))
         model.train()
+        total_batches = len(train_loader)
         for batch in train_loader:
             input_ids = batch.input_ids
             batch.pop('input_ids')
             attention_mask = batch.attention_mask
             batch.pop('attention_mask')
             graph_batch = batch
-            
-            x_graph, x_text = model(graph_batch.to(device), 
-                                    input_ids.to(device), 
-                                    attention_mask.to(device))
-            current_loss = contrastive_loss(x_graph, x_text)   
+            with autocast():
+                x_graph, x_text = model(graph_batch.to(device_1), 
+                                        input_ids.to(device_2), 
+                                        attention_mask.to(device_2))
+            current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
             optimizer.zero_grad()
-            current_loss.backward()
-            optimizer.step()
-            scheduler.step()
+            # current_loss.backward()
+            # optimizer.step()
+            scaler.scale(current_loss).backward()  # Backpropagation
+            scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
+            scaler.update() 
+            scheduler_lr.step()
             loss += current_loss.item()
             
             count_iter += 1
@@ -110,20 +160,22 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                     })
                 losses.append(loss)
                 loss = 0 
-        scheduler.step()
-        model.eval()       
-        val_loss = 0        
-        with torch.no_grad(): 
+        
+        model.eval()  
+        model.eval()   
+        # scheduler_expo.step()     
+        val_loss = 0
+        with torch.no_grad():    
             for batch in val_loader:
                 input_ids = batch.input_ids
                 batch.pop('input_ids')
                 attention_mask = batch.attention_mask
                 batch.pop('attention_mask')
                 graph_batch = batch
-                x_graph, x_text = model(graph_batch.to(device), 
-                                        input_ids.to(device), 
-                                        attention_mask.to(device))
-                current_loss = contrastive_loss(x_graph, x_text)   
+                x_graph, x_text = model(graph_batch.to(device_1), 
+                                        input_ids.to(device_2), 
+                                        attention_mask.to(device_2))
+                current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
                 val_loss += current_loss.item()
         
         best_validation_loss = min(best_validation_loss, val_loss)
@@ -147,8 +199,11 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
 
-    if not no_wandb:
-        model_artifact = wandb.Artifact('model'+str(epoch)+'epoch'+str(uuid.uuid1()).replace("-",""), type='model')
+    print('Loading in wandb')
+    
+    
+    if not no_wandb:        
+        model_artifact = wandb.Artifact('model'+str(uuid.uuid1()).replace("-",""), type='model')
         model_artifact.add_file(save_path)
         wandb.log_artifact(model_artifact)
         
@@ -168,23 +223,19 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
 
     idx_to_cid = test_cids_dataset.get_idx_to_cid()
 
-    test_loader = DataLoader(test_cids_dataset, batch_size=batch_size//4, shuffle=False)
-    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size//4, shuffle=False)
-
-    with torch.no_grad(): 
+    with torch.no_grad():
         graph_embeddings = []
         for batch in test_loader:
-            for output in graph_model(batch.to(device)):
+            for output in graph_model(batch.to(device_1)):
                 graph_embeddings.append(output.tolist())
 
         text_embeddings = []
         for batch in test_text_loader:
-            for output in text_model(batch['input_ids'].to(device), 
-                                    attention_mask=batch['attention_mask'].to(device)):
+            for output in text_model(batch['input_ids'].to(device_2), 
+                                    attention_mask=batch['attention_mask'].to(device_2)):
                 text_embeddings.append(output.tolist())
 
     similarity = cosine_similarity(text_embeddings, graph_embeddings)
-
     solution = pd.DataFrame(similarity)
     solution['ID'] = solution.index
     solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
@@ -200,10 +251,10 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         graph_embeddings = []
         text_embeddings = []
         for batch in val_loader:
-            for output in graph_model(batch.to(device)):
+            for output in graph_model(batch.to(device_1)):
                 graph_embeddings.append(output.tolist())
-            for output in text_model(batch['input_ids'].to(device), 
-                                    attention_mask=batch['attention_mask'].to(device)):
+            for output in text_model(batch['input_ids'].to(device_2), 
+                                    attention_mask=batch['attention_mask'].to(device_2)):
                 text_embeddings.append(output.tolist())
                 
     similarity = cosine_similarity(text_embeddings, graph_embeddings)
