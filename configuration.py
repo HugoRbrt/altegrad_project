@@ -10,7 +10,7 @@ CFG_EXPERIMENTS = {
         'name_exp': "GAT + skip(3) + scheduler linear + float16 + batch 200 + with_fast_tokenizer",
         'scheduler': 'lineair',
         'nb_epochs': 30,
-        'batch_size': 200,
+        'batch_size': 100,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
