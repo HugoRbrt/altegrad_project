@@ -422,10 +422,12 @@ class Model(nn.Module):
         nout,
         nhid,
         graph_hidden_channels,
-        heads):
+        heads,
+        device_1,
+        device_2):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_COMBINED(num_node_features, nout, nhid, graph_hidden_channels,heads)
-        self.text_encoder = TextEncoder_ORIGINAL(model_name)
+        self.graph_encoder = GraphEncoder_COMBINED(num_node_features, nout, nhid, graph_hidden_channels,heads).to(device_1)
+        self.text_encoder = TextEncoder_ORIGINAL(model_name).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
