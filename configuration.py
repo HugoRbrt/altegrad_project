@@ -10,7 +10,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 2e-5,
         'name_exp': " GAT + SAGE + LEConv + skip(3) + scheduler linear + BIG Training + 2 devices training + FLOAT16 ",
         'scheduler': 'linear',
-        'nb_epochs': 80,
+        'nb_epochs': 60,
         'batch_size': 64,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
