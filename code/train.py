@@ -127,6 +127,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     for i in range(nb_epochs):
         print('-----EPOCH{}-----'.format(i+1))
         model.train()
+
         for batch in train_loader:
             input_ids = batch.input_ids
             batch.pop('input_ids')

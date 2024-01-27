@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
         'learning_rate': 2e-5,
-        'name_exp': "GAT + skip(3) + scheduler linear + float16 + batch 200 + with_fast_tokenizer",
+        'name_exp': "GAT + skip(3) + scheduler linear + float16 + batch 200 + hard negative loss",
         'scheduler': 'lineair',
         'nb_epochs': 30,
         'batch_size': 100,
@@ -26,7 +26,7 @@ CFG_EXPERIMENTS = {
         'dim_text':768,
         'device_1': 'cuda:0',
         'device_2': 'cuda:1',
-        'with_fast_tokenizer': True,
+        'with_fast_tokenizer': False,
     },
     # 1:{  
     #     'who': 'baptiste',
