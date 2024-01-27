@@ -3,7 +3,7 @@
 #############################################################################################################
 # Import Libraries
 import torch
-from torch.nn import nn
+from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv, SAGEConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
