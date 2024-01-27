@@ -428,7 +428,7 @@ class Model(nn.Module):
         dim_text,
         heads):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_COMBINED(num_node_features, nout, nhid, graph_hidden_channels,heads)
+        self.graph_encoder = GraphEncoder_GAT(num_node_features, nout, nhid, graph_hidden_channels,heads)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text)
         
     def forward(self, graph_batch, input_ids, attention_mask):
