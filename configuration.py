@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
         'learning_rate': 2e-5,
-        'name_exp': "GAT + skip(3) + scheduler linear + float16 + batch 200 (normal)",
+        'name_exp': "GAT + skip(3) + scheduler linear + float16 + batch 200 + hard negative loss",
         'scheduler': 'lineair',
         'nb_epochs': 30,
         'batch_size': 200,
