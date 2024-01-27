@@ -11,7 +11,7 @@ CFG_EXPERIMENTS = {
         'name_exp': " 1 GAT  + BIG Training + 2 devices training + FLOAT16 ",
         'scheduler': 'linear',
         'nb_epochs': 90,
-        'batch_size': 256,
+        'batch_size': 128,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
