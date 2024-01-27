@@ -82,7 +82,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                   num_node_features=cfg['num_node_features'], 
                   nout=cfg['nout'], nhid=cfg['nhid'], 
                   graph_hidden_channels=cfg['graph_hidden_channels'],
-                  heads=cfg['heads'],
                   device_1=device_1, 
                   device_2=device_2) # nout = bert model hidden dim
     #model.to(device)

@@ -30,7 +30,7 @@ class GraphEncoder_ORIGINAL(nn.Module):
         self.ln = nn.LayerNorm((nout))
         self.conv1 = GCNConv(num_node_features, graph_hidden_channels)
         self.conv2 = GCNConv(graph_hidden_channels, graph_hidden_channels)
-        self.conv3 = GCNConv(graph_hidden_channels, graph_hidden_channels)
+        # self.conv3 = GCNConv(graph_hidden_channels, graph_hidden_channels)
         self.mol_hidden1 = nn.Linear(graph_hidden_channels, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
 
@@ -45,8 +45,8 @@ class GraphEncoder_ORIGINAL(nn.Module):
         x = self.conv1(x, edge_index)
         x = x.relu()
         x = self.conv2(x, edge_index)
-        x = x.relu()
-        x = self.conv3(x, edge_index)
+        # x = x.relu()
+        # x = self.conv3(x, edge_index)
         # Global mean pooling
         # It aggregates all node features into a single graph feature vector
         x = global_mean_pool(x, batch)
@@ -191,7 +191,7 @@ class GraphEncoder_COMBINED(nn.Module):
         x = self.relu(x)
         
         x = global_max_pool(x, batch)
-        
+
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x).relu()
         x = self.mol_hidden3(x)
@@ -305,14 +305,15 @@ class GraphLEConv(nn.Module):
 #############################################################################################################
 # SMALL Graph Encoder
 class GraphEncoderGNN(nn.Module):
-    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels):
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels,heads):
         super(GraphEncoderGNN, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
         self.ln = nn.LayerNorm((nout))
         # Replace GCNConv with GraphConv or another GNN layer
-        self.conv1 = pyg_nn.GraphConv(num_node_features, graph_hidden_channels)
+        self.conv1 = GATConv(graph_hidden_channels, graph_hidden_channels*heads)
+        self.conv2 = GATConv(graph_hidden_channels*heads, graph_hidden_channels)
         self.mol_hidden1 = nn.Linear(graph_hidden_channels, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
 
@@ -321,9 +322,10 @@ class GraphEncoderGNN(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         
-        x = self.conv1(xgigit , edge_index)
-        x = self.relu(x)
-        x = pyg_nn.global_max_pool(x, batch)  # ensure you import this function
+        x = self.conv1(x, edge_index)
+        x = x.relu()
+        x = self.conv2(x, edge_index)
+        x = x.relu()
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x
@@ -421,11 +423,10 @@ class Model(nn.Module):
         nout,
         nhid,
         graph_hidden_channels,
-        heads,
         device_1,
         device_2):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_COMBINED(num_node_features, nout, nhid, graph_hidden_channels,heads).to(device_1)
+        self.graph_encoder = GraphEncoder_ORIGINAL(num_node_features, nout, nhid, graph_hidden_channels).to(device_1)
         self.text_encoder = TextEncoder_ORIGINAL(model_name).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
