@@ -24,23 +24,21 @@ def contrastive_loss(v1, v2):
     labels = torch.arange(logits.shape[0], device=v1.device)
     return CE(logits, labels) + CE(torch.transpose(logits, 0, 1), labels)
 
-def hard_contrastive_loss(v1, v2, t=0.07, beta=0.5):
+def hard_contrastive_loss(v1, v2, t=0.07, beta=0.1):
     v1, v2 = v1.float(), v2.float()
     logits = torch.matmul(v1, v2.T) / t
     N = logits.size(1) - 1  # Assuming square matrix excluding self-comparison
-    # Exponential for positive and negative samples
+
     pos_exp = torch.exp(logits.diag())
     neg_exp = torch.exp(logits.fill_diagonal_(0)).sum(axis=1)
-
-    # Calculate the hard sampling weights
     reweight = (beta * neg_exp) / neg_exp.mean()
 
     # Calculate the hard negative samples with reweighting
-    Neg = torch.max(((-N * pos_exp + reweight * neg_exp)), torch.tensor(1e-12).to(v1.device))
+    Neg = torch.max(((-N * pos_exp + reweight * neg_exp)), torch.tensor(0.0).to(v1.device))
 
     # Hard sampling loss calculation
     hard_loss = -torch.log(pos_exp / (pos_exp + Neg))
-    return hard_loss.sum() 
+    return hard_loss.mean() 
 
 def run_experiment(cfg, cpu=False, no_wandb=False):
     """this function allows to run an experiments with the given configuration in cfg
@@ -137,7 +135,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 x_graph, x_text = model(graph_batch.to(device_1), 
                                         input_ids.to(device_2), 
                                         attention_mask.to(device_2))
-            current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
+            current_loss = hard_contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
             optimizer.zero_grad()
             # current_loss.backward()
             # optimizer.step()
@@ -172,7 +170,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 x_graph, x_text = model(graph_batch.to(device_1), 
                                         input_ids.to(device_2), 
                                         attention_mask.to(device_2))
-                current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
+                current_loss = hard_contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
                 val_loss += current_loss.item()
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
