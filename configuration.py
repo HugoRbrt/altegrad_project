@@ -7,10 +7,10 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
         'learning_rate': 2e-5,
-        'name_exp': "GraphGATv2Conv + scheduler linear + float16 + batch 250 + with_fast_tokenizer + n_heads_text:8 + n_layers_text:4 + freeze 2 first layers + embedding",
+        'name_exp': "GraphSuperGATConv + scheduler linear + float16 + batch 250 + with_fast_tokenizer + n_heads_text:8 + n_layers_text:4 + freeze 2 first layers + embedding",
         'scheduler': 'lineair',
         'nb_epochs': 70,
-        'batch_size': 250,
+        'batch_size': 200,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
