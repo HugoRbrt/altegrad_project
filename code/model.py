@@ -248,12 +248,10 @@ class Model(nn.Module):
         self.device_2 = device_2
     
     def encode_graph(self, graph_batch, queue):
-        torch.cuda.set_device(0)  # Set the GPU index for the graph encoder
         encoded_graph = self.graph_encoder(graph_batch.to(self.device_1))
         queue.put(encoded_graph.cpu())  # Move the tensor back to CPU before putting it in the queue
 
     def encode_text(self, input_ids, attention_mask, queue):
-        torch.cuda.set_device(1)  # Set the GPU index for the text encoder
         encoded_text = self.text_encoder(input_ids.to(self.device_2), attention_mask.to(self.device_2))
         queue.put(encoded_text.cpu())  # Move the tensor back to CPU before putting it in the queue
 
