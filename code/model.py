@@ -16,7 +16,9 @@ class MLPModel(nn.Module):
         self.mol_hidden2 = nn.Linear(nhid, nhid)
         self.mol_hidden3 = nn.Linear(nhid, nhid)
         self.mol_hidden4 = nn.Linear(nhid, nhid)
-        self.mol_hidden5 = nn.Linear(nhid, nout)
+        self.mol_hidden5 = nn.Linear(nhid, nhid)
+        self.mol_hidden6 = nn.Linear(nhid, nhid)
+        self.mol_hidden7 = nn.Linear(nhid, nout)
     def forward(self, graph_batch):
         x = graph_batch.x
         edge_index = graph_batch.edge_index
@@ -26,8 +28,10 @@ class MLPModel(nn.Module):
         x = self.relu(self.mol_hidden2(x))
         x = self.relu(self.mol_hidden3(x))
         x = self.relu(self.mol_hidden4(x))
+        x = self.relu(self.mol_hidden5(x))
+        x = self.relu(self.mol_hidden6(x))
         x = global_max_pool(x, batch)
-        x = self.mol_hidden5(x)
+        x = self.mol_hidden7(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)
         return x
