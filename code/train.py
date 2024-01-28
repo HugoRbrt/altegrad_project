@@ -145,7 +145,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             scaler.scale(current_loss).backward()  # Backpropagation
             scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
             scaler.update() 
-            # scheduler_lr.step()
+            scheduler_lr.step()
             loss += current_loss.item()
             
             count_iter += 1
@@ -196,7 +196,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
         
-        scheduler_cosine.step()
+        # scheduler_cosine.step()
     print('Loading in wanddb')
     
     
