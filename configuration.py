@@ -4,20 +4,20 @@ GIT_REPO = "altegrad_project"  # Your current git repo
 # Keep free unless you need to acess kaggle datasets. You'll need to modify the remote_training_template.ipynb.
 KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
-    0:{  
+    0: {  
         'who': 'baptiste',
         'learning_rate': 2e-5,
-        'name_exp': "GAT + skip  + scheduler linear/cosine + float16 + batch 175 + with_fast_tokenizer + n_heads_text:8 + n_layers_text:4 + freeze embedding + 2 first layers",
-        'scheduler': 'lineair',
-        'nb_epochs': 80,
+        'name_exp': "retrained GAT + skip(3) + scheduler cosine + float16 + batch 200 + with_fast_tokenizer + n_heads_text:8 + n_layers_text:4 + freeze 2 first layers + embedding",
+        'scheduler': 'cosine',
+        'nb_epochs': 60,
         'batch_size': 175,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
-        'nhid': 300,
+        'nhid': 450,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
-        'heads': 20,
+        'heads': 25,
         'comment': '',
         'T_max': '',
         'n_heads_text':8, 
