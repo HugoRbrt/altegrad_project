@@ -13,6 +13,7 @@ from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader as TorchDataLoader
 import numpy as np
 from transformers import AutoTokenizer
+from torch.multiprocessing import mp
 from transformers.optimization import get_linear_schedule_with_warmup
 
 
@@ -64,6 +65,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     batch_size = cfg['batch_size']
     learning_rate =cfg['learning_rate']
     model_name =cfg['model_name']
+    mp.set_start_method('spawn')
     
     if cfg['with_fast_tokenizer']:
         tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
