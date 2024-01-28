@@ -111,7 +111,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     
     num_warmup_steps = cfg['num_warmup_steps']
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
-    # scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
+    scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
     
     scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     
@@ -145,7 +145,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             scaler.scale(current_loss).backward()  # Backpropagation
             scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
             scaler.update() 
-            # scheduler_lr.step()
+            scheduler_lr.step()
             loss += current_loss.item()
             
             count_iter += 1
@@ -195,8 +195,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             'loss': loss,
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
-        if i>60:
-            scheduler_cosine.step()
+        
+        scheduler_cosine.step()
     print('Loading in wanddb')
     
     
