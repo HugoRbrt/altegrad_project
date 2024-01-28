@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, GINConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoConfig, AutoModel
+from torch.multiprocessing import Process, Queue
 
 class MLPModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
@@ -242,12 +243,32 @@ class Model(nn.Module):
         super(Model, self).__init__()
         #self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.graph_encoder = MLPModel(num_node_features, nout, nhid).to(device_1)
+        self.device_1 = device_1
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
-        
+        self.device_2 = device_2
+    
+    def encode_graph(self, graph_batch, queue):
+        torch.cuda.set_device(0)  # Set the GPU index for the graph encoder
+        encoded_graph = self.graph_encoder(graph_batch.to(self.device_1))
+        queue.put(encoded_graph.cpu())  # Move the tensor back to CPU before putting it in the queue
+
+    def encode_text(self, input_ids, attention_mask, queue):
+        torch.cuda.set_device(1)  # Set the GPU index for the text encoder
+        encoded_text = self.text_encoder(input_ids.to(self.device_2), attention_mask.to(self.device_2))
+        queue.put(encoded_text.cpu())  # Move the tensor back to CPU before putting it in the queue
+
     def forward(self, graph_batch, input_ids, attention_mask):
-        graph_encoded = self.graph_encoder(graph_batch)
-        text_encoded = self.text_encoder(input_ids, attention_mask)
-        
+        queue = Queue()
+        p1 = Process(target=self.encode_graph, args=(graph_batch, queue))
+        p2 = Process(target=self.encode_text, args=(input_ids, attention_mask, queue))
+
+        p1.start()
+        p2.start()
+        p1.join()
+        p2.join()
+        graph_encoded = queue.get()
+        text_encoded = queue.get()
+
         return graph_encoded, text_encoded
     
     def get_text_encoder(self):
