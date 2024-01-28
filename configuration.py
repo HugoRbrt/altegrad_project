@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
         'learning_rate': 2e-5,
-        'name_exp': "MLP",
+        'name_exp': "MLP 5 layers",
         'scheduler': 'lineair',
         'nb_epochs': 50,
         'batch_size': 200,
