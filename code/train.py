@@ -2,6 +2,7 @@ from .model import Model
 from .data_loader import GraphTextDataset, GraphDataset, TextDataset
 from torch import optim
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics import label_ranking_average_precision_score
 import time
 from torch_geometric.data import DataLoader
 import wandb
@@ -163,6 +164,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         model.eval()  
         # scheduler_expo.step()     
         val_loss = 0
+        graph_embeddings = []
+        text_embeddings = []
         with torch.no_grad():    
             for batch in val_loader:
                 input_ids = batch.input_ids
@@ -173,15 +176,28 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 x_graph, x_text = model(graph_batch.to(device_1), 
                                         input_ids.to(device_2), 
                                         attention_mask.to(device_2))
+                for i in range(x_graph.shape[0]):
+                    graph_embeddings.append(x_graph[i].tolist())
+                    text_embeddings.append(x_text[i].tolist())
                 current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
                 val_loss += current_loss.item()
+        
+        similarity = cosine_similarity(text_embeddings, graph_embeddings)
+        n_samples = len(text_embeddings)
+        labels = np.eye(n_samples)
+
+        # Calculate the LRAP score
+        lrap_score = label_ranking_average_precision_score(labels, similarity)
+        
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
+        print('LRAP score: ', str(lrap_score))
         if not no_wandb:
             wandb.log({
                 'epoch/val': i,
                 'loss/val':  val_loss/len(val_loader),
                 'loss/val2':  val_loss/(batch_size*len(val_loader)),
+                'LRAP score': lrap_score,
                 'accuract/val': 0,
             })
         if best_validation_loss==val_loss:
