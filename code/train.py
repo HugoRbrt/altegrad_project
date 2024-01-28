@@ -93,8 +93,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         nhid=cfg['nhid'], 
         graph_hidden_channels=cfg['graph_hidden_channels'], 
         heads=cfg['heads'], 
-        device_1=cfg['device_1'], 
-        device_2=cfg['device_2'], 
+        device_1=device_1, 
+        device_2=device_2, 
         n_heads_text=cfg['n_heads_text'], 
         n_layers_text=cfg['n_layers_text'], 
         hidden_dim_text=cfg['hidden_dim_text'], 
@@ -153,7 +153,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             if count_iter % printEvery == 0:
                 time2 = time.time()
                 print("Iteration: {0}, Time: {1:.4f} s, training loss: {2:.4f}".format(count_iter,
-                                                                            time2 - time1, loss/(batch_size*printEvery)))
+                                                                            time2 - time1, loss/printEvery))
                 if not no_wandb:
                     wandb.log({
                         "epoch/train": i, 'loss/train': loss/printEvery, 'loss/train2': loss/(batch_size*printEvery),
@@ -162,7 +162,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 loss = 0 
         
         model.eval()  
-        model.eval()   
         # scheduler_expo.step()     
         val_loss = 0
         with torch.no_grad():    
@@ -177,7 +176,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                         attention_mask.to(device_2))
                 current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
                 val_loss += current_loss.item()
-        
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
         if not no_wandb:
@@ -199,7 +197,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
 
-    print('Loading in wandb')
+    print('Loading in wanddb')
     
     
     if not no_wandb:        
@@ -242,6 +240,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     solution.to_csv('submission.csv', index=False)
     
     if not no_wandb:
+        
         submission_artifact = wandb.Artifact('submission'+str(uuid.uuid1()).replace("-",""), type='csv')
         submission_artifact.add_file('submission.csv')
         wandb.log_artifact(submission_artifact)
