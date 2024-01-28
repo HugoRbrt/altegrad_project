@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 2e-5,
         'name_exp': "GAT + skip  + scheduler linear + float16 + batch 400 + with_fast_tokenizer + n_heads_text:6 + n_layers_text:4 + freeze  embedding 9 first layers",
         'scheduler': 'lineair',
-        'nb_epochs': 20,
+        'nb_epochs': 30,
         'batch_size': 200,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
