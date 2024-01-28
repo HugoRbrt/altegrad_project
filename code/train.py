@@ -145,7 +145,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             scaler.scale(current_loss).backward()  # Backpropagation
             scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
             scaler.update() 
-            scheduler_lr.step()
+            # scheduler_lr.step()
             loss += current_loss.item()
             
             count_iter += 1
