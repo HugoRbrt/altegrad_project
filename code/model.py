@@ -22,10 +22,10 @@ class MLPModel(nn.Module):
         
         x = self.relu(self.mol_hidden1(x))
         x = self.relu(self.mol_hidden2(x))
+        x = global_max_pool(x, batch)
         x = self.mol_hidden3(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)
-        x = global_max_pool(x, batch)
         return x
     
 class GCNModel(nn.Module):
@@ -193,8 +193,8 @@ class Model(nn.Module):
     def __init__(self, model_name, num_node_features, nout, nhid, graph_hidden_channels, heads):
         super(Model, self).__init__()
         #self.graph_encoder = GINConModel(num_node_features, nout, nhid)
-        #self.graph_encoder = MLPModel(num_node_features, nout, nhid)
-        self.graph_encoder = GatConv(num_node_features, nout, nhid, graph_hidden_channels, heads)
+        self.graph_encoder = MLPModel(num_node_features, nout, nhid)
+        #self.graph_encoder = GatConv(num_node_features, nout, nhid, graph_hidden_channels, heads)
         self.text_encoder = TextEncoder(model_name, nout)
         
     def forward(self, graph_batch, input_ids, attention_mask):
