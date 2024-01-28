@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'baptiste',
         'learning_rate': 2e-5,
-        'name_exp': "(test) GAT + skip  + scheduler linear + float16 + batch 400 + with_fast_tokenizer + n_heads_text:8 + n_layers_text:4 + freeze 2 first layers + embedding",
+        'name_exp': "(test 25) GAT + skip  + scheduler linear + float16 + batch 400 + with_fast_tokenizer + n_heads_text:8 + n_layers_text:4 + freeze 2 first layers + embedding",
         'scheduler': 'lineair',
         'nb_epochs': 1,
         'batch_size': 200,
@@ -17,7 +17,7 @@ CFG_EXPERIMENTS = {
         'nhid': 450,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
-        'heads': 20,
+        'heads': 25,
         'comment': '',
         'T_max': '',
         'n_heads_text':8, 
