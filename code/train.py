@@ -102,6 +102,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         ) # nout = bert model hidden dim
     # model.to(device)
     print(model)
+    print("number of parameters:", sum(p.numel() for p in model.parameters() if p.requires_grad))
 
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
