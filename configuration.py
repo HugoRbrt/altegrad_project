@@ -14,7 +14,7 @@ CFG_EXPERIMENTS = {
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
-        'nhid': 900,
+        'nhid': 2000,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
         'heads': 20,
