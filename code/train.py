@@ -83,6 +83,10 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                   nout=cfg['nout'], nhid=cfg['nhid'], 
                   graph_hidden_channels=cfg['graph_hidden_channels'],
                   heads = cfg['heads'],
+                  n_heads_text=cfg['n_heads_text'],
+                  n_layers_text=cfg['n_layers_text'],
+                  hidden_dim_text=cfg['hidden_dim_text'],
+                  dim_text=cfg['dim_text'],
                   device_1=device_1, 
                   device_2=device_2) # nout = bert model hidden dim
     #model.to(device)

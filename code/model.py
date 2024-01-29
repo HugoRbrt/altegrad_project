@@ -390,23 +390,23 @@ class AttentionPooling(nn.Module):
     
 #############################################################################################################
 #############################################################################################################
-# # Define Text Encoder
-# class TextEncoder(nn.Module):
-#     def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
-#         super(TextEncoder, self).__init__()
-#         config = AutoConfig.from_pretrained(
-#             model_name, 
-#             n_heads=n_heads_text,
-#             n_layers=n_layers_text,
-#             hidden_dim=hidden_dim_text,
-#             dim=dim_text,
-#             )
-#         self.bert = AutoModel.from_pretrained(model_name, config=config)
-#        
-#     def forward(self, input_ids, attention_mask):
-#         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
-#         #print(encoded_text.last_hidden_state.size())
-#    return encoded_text.last_hidden_state[:,0,:]
+# Define Text Encoder
+class TextEncoder(nn.Module):
+    def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
+        super(TextEncoder, self).__init__()
+        config = AutoConfig.from_pretrained(
+            model_name, 
+            n_heads=n_heads_text,
+            n_layers=n_layers_text,
+            hidden_dim=hidden_dim_text,
+            dim=dim_text,
+            )
+        self.bert = AutoModel.from_pretrained(model_name, config=config)
+       
+    def forward(self, input_ids, attention_mask):
+        encoded_text = self.bert(input_ids, attention_mask=attention_mask)
+        #print(encoded_text.last_hidden_state.size())
+   return encoded_text.last_hidden_state[:,0,:]
     
 
 #############################################################################################################
@@ -431,11 +431,15 @@ class Model(nn.Module):
         nhid,
         graph_hidden_channels,
         heads,
+        n_heads_text,
+        n_layers_text,
+        hidden_dim_text,
+        dim_text,
         device_1,
         device_2):
         super(Model, self).__init__()
         self.graph_encoder = GraphEncoder_GAT(num_node_features, nout, nhid, graph_hidden_channels,heads).to(device_1)
-        self.text_encoder = TextEncoder_ORIGINAL(model_name).to(device_2)
+        self.text_encoder = TextEncoder(model_name,n_heads_text,n_layers_text,hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_encoded = self.graph_encoder(graph_batch)
