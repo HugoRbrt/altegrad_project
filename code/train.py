@@ -100,13 +100,13 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         ) # nout = bert model hidden dim
     # model.to(device)
     print(model)
-    checkpoint = torch.load('/kaggle/input/model61/model61.pt')
-    model.load_state_dict(checkpoint['model_state_dict'])
+    # checkpoint = torch.load('/kaggle/input/model61/model61.pt')
+    # model.load_state_dict(checkpoint['model_state_dict'])
     
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     
     scaler = GradScaler()
     
