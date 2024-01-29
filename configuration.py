@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 2e-5,
         'name_exp': "retrained GAT + skip(3) + scheduler linear + float16 + batch 200 + with_fast_tokenizer + n_heads_text:8 + n_layers_text:4 + freeze 2 first layers + embedding",
         'scheduler': 'cosine',
-        'nb_epochs': 60,
+        'nb_epochs': 2,
         'batch_size': 175,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
