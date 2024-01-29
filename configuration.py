@@ -10,7 +10,7 @@ CFG_EXPERIMENTS = {
         'name_exp': "test",
         'scheduler': 'cosine',
         'nb_epochs': 2,
-        'batch_size': 175,
+        'batch_size': 30,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
