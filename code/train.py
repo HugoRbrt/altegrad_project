@@ -126,7 +126,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     printEvery = 50
     best_validation_loss = 1000000
 
-    for i in range(nb_epochs):
+    for i in range(100): #TODO: change to nb_epochs
         print('-----EPOCH{}-----'.format(i+1))
         model.train()
         total_batches = len(train_loader)
