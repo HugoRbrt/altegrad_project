@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 2e-5,
-        'name_exp': "LeConv + skip",
+        'name_exp': "GCNConvSkip + skip",
         'scheduler': 'linear',
         'nb_epochs': 70,
         'batch_size': 200,
