@@ -424,7 +424,7 @@ class Model(nn.Module):
         dim_text,
         ):
         super(Model, self).__init__()
-        self.graph_encoder = LEConvSkip(num_node_features, nout, nhid).to(device_1)
+        self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
