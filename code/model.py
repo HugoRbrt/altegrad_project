@@ -91,9 +91,9 @@ class GCNConvSkip(nn.Module):
         self.ln = nn.LayerNorm((nout))
         self.conv1 = GCNConv(num_node_features, nhid)
         self.skip_1 = nn.Linear(num_node_features, nhid)
-        self.conv2 = GCNConv(num_node_features, nhid)
+        self.conv2 = GCNConv(nhid, nhid)
         self.skip_2 = nn.Linear(nhid, nhid)
-        self.conv3 = GCNConv(num_node_features, nhid)
+        self.conv3 = GCNConv(nhid, nhid)
         self.skip_3 = nn.Linear(nhid, nhid)
 
         self.mol_hidden1 = nn.Linear(nhid, nhid)
@@ -133,9 +133,9 @@ class LEConvSkip(nn.Module):
         self.ln = nn.LayerNorm((nout))
         self.conv1 = LEConv(num_node_features, nhid)
         self.skip_1 = nn.Linear(num_node_features, nhid)
-        self.conv2 = LEConv(num_node_features, nhid)
+        self.conv2 = LEConv(nhid, nhid)
         self.skip_2 = nn.Linear(nhid, nhid)
-        self.conv3 = LEConv(num_node_features, nhid)
+        self.conv3 = LEConv(nhid, nhid)
         self.skip_3 = nn.Linear(nhid, nhid)
 
         self.mol_hidden1 = nn.Linear(nhid, nhid)
