@@ -8,7 +8,7 @@ CFG_EXPERIMENTS = {
     0:{
         'who': 'matteo',
         'learning_rate': 2e-5,
-        'name_exp': " 4 GATv2  + BIG Training + 96 batchsize + 2 devices training + FLOAT16 ",
+        'name_exp': " 4 SUPERGAT  + BIG Training + 96 batchsize + 2 devices training + FLOAT16 ",
         'scheduler': 'linear',
         'nb_epochs': 60,
         'batch_size': 96,
@@ -18,7 +18,7 @@ CFG_EXPERIMENTS = {
         'nhid': 300,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
-        'heads': 20,
+        'heads': 25,
         'comment': 'Four Gatv2 big batch size',
         'T_max': '',
         'n_heads_text':12, 
