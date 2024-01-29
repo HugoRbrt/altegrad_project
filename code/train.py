@@ -6,6 +6,7 @@ from .model import Model
 from .data_loader import GraphTextDataset, GraphDataset, TextDataset
 from torch import optim
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics import label_ranking_average_precision_score
 import time
 from torch_geometric.data import DataLoader
 import wandb
@@ -179,6 +180,13 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                         attention_mask.to(device_2))
                 current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
                 val_loss += current_loss.item()
+
+        similarity = cosine_similarity(text_embeddings, graph_embeddings)
+        n_samples = len(text_embeddings)
+        labels = np.eye(n_samples)
+
+        # Calculate the LRAP score
+        lrap_score = label_ranking_average_precision_score(labels, similarity)
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
         if not no_wandb:

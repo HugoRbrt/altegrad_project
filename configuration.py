@@ -8,10 +8,10 @@ CFG_EXPERIMENTS = {
     0:{
         'who': 'matteo',
         'learning_rate': 2e-5,
-        'name_exp': " 4 SuperGAT  + BIG Training + 96 batchsize + 2 devices training + FLOAT16 ",
+        'name_exp': " 4 GATv2  + BIG Training + 128 batchsize + 2 devices training + FLOAT16 ",
         'scheduler': 'linear',
         'nb_epochs': 60,
-        'batch_size': 96,
+        'batch_size': 128,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
