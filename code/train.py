@@ -31,6 +31,22 @@ def contrastive_loss(v1, v2):
     labels = torch.arange(logits.shape[0], device=v1.device)
     return CE(logits, labels) + CE(torch.transpose(logits, 0, 1), labels)
 
+def hard_contrastive_loss(v1, v2, t=0.07, beta=0.1):
+    v1, v2 = v1.float(), v2.float()
+    logits = torch.matmul(v1, v2.T) / t
+    N = logits.size(1) - 1  # Assuming square matrix excluding self-comparison
+
+    pos_exp = torch.exp(logits.diag())
+    neg_exp = torch.exp(logits.fill_diagonal_(0)).sum(axis=1)
+    reweight = (beta * neg_exp) / neg_exp.mean()
+
+    # Calculate the hard negative samples with reweighting
+    Neg = torch.max(((-N * pos_exp + reweight * neg_exp)), torch.tensor(0.0).to(v1.device))
+
+    # Hard sampling loss calculation
+    hard_loss = -torch.log(pos_exp / (pos_exp + Neg))
+    return hard_loss.mean() 
+
 #############################################################################################################
 #############################################################################################################
 # Define training function
