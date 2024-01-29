@@ -181,12 +181,12 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
                 val_loss += current_loss.item()
 
-        similarity = cosine_similarity(text_embeddings, graph_embeddings)
-        n_samples = len(text_embeddings)
-        labels = np.eye(n_samples)
+        # similarity = cosine_similarity(text_embeddings, graph_embeddings)
+        # n_samples = len(text_embeddings)
+        # labels = np.eye(n_samples)
 
-        # Calculate the LRAP score
-        lrap_score = label_ranking_average_precision_score(labels, similarity)
+        # # Calculate the LRAP score
+        # lrap_score = label_ranking_average_precision_score(labels, similarity)
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
         if not no_wandb:
