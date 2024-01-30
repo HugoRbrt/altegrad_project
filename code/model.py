@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+from torch.nn import TransformerDecoder, TransformerDecoderLayer
 from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoConfig, AutoModel
@@ -379,37 +380,37 @@ class TextEncoder_lora(nn.Module):
         encoded_text = self.peft_model(input_ids, attention_mask=attention_mask)
         return encoded_text.last_hidden_state[:,0,:]
  
-class Model_before(nn.Module):
-    def __init__(
-        self, 
-        model_name, 
-        num_node_features, 
-        nout, 
-        nhid, 
-        graph_hidden_channels, 
-        heads,
-        device_1,
-        device_2,
-        n_heads_text, 
-        n_layers_text, 
-        hidden_dim_text, 
-        dim_text,
-        ):
-        super(Model, self).__init__()
-        self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
-        self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
+# class Model_before(nn.Module):
+#     def __init__(
+#         self, 
+#         model_name, 
+#         num_node_features, 
+#         nout, 
+#         nhid, 
+#         graph_hidden_channels, 
+#         heads,
+#         device_1,
+#         device_2,
+#         n_heads_text, 
+#         n_layers_text, 
+#         hidden_dim_text, 
+#         dim_text,
+#         ):
+#         super(Model_before, self).__init__()
+#         self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
+#         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         
-    def forward(self, graph_batch, input_ids, attention_mask):
-        graph_encoded = self.graph_encoder(graph_batch)
-        text_encoded = self.text_encoder(input_ids, attention_mask)
+#     def forward(self, graph_batch, input_ids, attention_mask):
+#         graph_encoded = self.graph_encoder(graph_batch)
+#         text_encoded = self.text_encoder(input_ids, attention_mask)
         
-        return graph_encoded, text_encoded
+#         return graph_encoded, text_encoded
     
-    def get_text_encoder(self):
-        return self.text_encoder
+#     def get_text_encoder(self):
+#         return self.text_encoder
     
-    def get_graph_encoder(self):
-        return self.graph_encoder
+#     def get_graph_encoder(self):
+#         return self.graph_encoder
 
 
 class GraphConv_2(nn.Module):
@@ -440,8 +441,7 @@ class GraphConv_2(nn.Module):
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x, z
-    
-    from torch.nn import TransformerDecoder, TransformerDecoderLayer
+
     
     class Model(nn.Module):
         def __init__(
