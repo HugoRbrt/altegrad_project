@@ -396,7 +396,7 @@ class Model(nn.Module):
         hidden_dim_text, 
         dim_text,
         ):
-        super(Model_before, self).__init__()
+        super(Model, self).__init__()
         self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         

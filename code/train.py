@@ -125,7 +125,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     time1 = time.time()
     printEvery = 50
     best_validation_loss = 1000000
-
+    best_lrap = 1000000
     for i in range(nb_epochs):
         print('-----EPOCH{}-----'.format(i+1))
         model.train()
@@ -190,6 +190,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         lrap_score = label_ranking_average_precision_score(labels, similarity)
         
         best_validation_loss = min(best_validation_loss, val_loss)
+        best_lrap = max(best_lrap, lrap_score)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
         print('LRAP score: ', str(lrap_score))
         if not no_wandb:
@@ -200,8 +201,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 'LRAP score': lrap_score,
                 'accuract/val': 0,
             })
-        if best_validation_loss==val_loss:
-            print('validation loss improved saving checkpoint...')
+        if best_lrap==lrap_score:
+            print('lrap_score improved saving checkpoint...')
             save_path = os.path.join('./', 'model'+str(i)+'.pt')
             torch.save({
             'epoch': i,
@@ -211,7 +212,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             'loss': loss,
             }, save_path)
             print('checkpoint saved to: {}'.format(save_path))
-        
+
         # scheduler_cosine.step()
     print('Loading in wanddb')
     
