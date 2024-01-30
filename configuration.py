@@ -18,7 +18,7 @@ CFG_EXPERIMENTS = {
         'nhid': 300,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
-        'heads': 25,
+        'heads': 20,
         'comment': 'Four SuperGat big batch size',
         'T_max': '',
         'n_heads_text':12, 
