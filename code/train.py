@@ -240,7 +240,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     with torch.no_grad():
         graph_embeddings = []
         for batch in test_loader:
-            for output, _ in graph_model(batch.to(device_1)):
+            for output in graph_model(batch.to(device_1)):
                 graph_embeddings.append(output.tolist())
 
         text_embeddings = []
@@ -266,7 +266,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         graph_embeddings = []
         text_embeddings = []
         for batch in val_loader:
-            for output, _ in graph_model(batch.to(device_1)):
+            for output in graph_model(batch.to(device_1)):
                 graph_embeddings.append(output.tolist())
             for output in text_model(batch['input_ids'].to(device_2), 
                                     attention_mask=batch['attention_mask'].to(device_2)):
