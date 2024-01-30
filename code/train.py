@@ -125,7 +125,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     time1 = time.time()
     printEvery = 50
     best_validation_loss = 1000000
-    best_lrap = 1000000
+    best_lrap = -1000000
     for i in range(nb_epochs):
         print('-----EPOCH{}-----'.format(i+1))
         model.train()
