@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 5e-4,
         'name_exp': "BIG GraphEncoder_v2 + BIG SKIP + BIG TRAINING + BIG DUDE + BIG LR=5e-4 + BIG 95 EPOCHS",
         'scheduler': 'linear',
-        'nb_epochs': 75,
+        'nb_epochs': 1,
         'batch_size': 150,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
