@@ -207,11 +207,13 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         lrap_score = label_ranking_average_precision_score(labels, similarity)
         best_validation_loss = min(best_validation_loss, val_loss)
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
+        print('LRAP score: ', str(lrap_score))
         if not no_wandb:
             wandb.log({
                 'epoch/val': i,
                 'loss/val':  val_loss/len(val_loader),
                 'loss/val2':  val_loss/(batch_size*len(val_loader)),
+                'LRAP score': lrap_score,
                 'accuract/val': 0,
             })
         if best_validation_loss==val_loss:
