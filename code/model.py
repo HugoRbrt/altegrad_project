@@ -472,8 +472,7 @@ class GraphConv(nn.Module):
             tgt = self.cross_modal_decoder(text_encoded, graph_latent, tgt_mask, memory_mask,
                                        tgt_key_padding_mask, memory_key_padding_mask)
     
-
-            return tgt, graph_proj
+            return graph_proj, tgt
             
             
         
