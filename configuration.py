@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 3e-5,
         'name_exp': "MLP 10 layers",
         'scheduler': 'lineair',
-        'nb_epochs': 300,
+        'nb_epochs': 240,
         'batch_size': 200,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
