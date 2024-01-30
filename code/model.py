@@ -223,35 +223,7 @@ class GraphLEConv(nn.Module):
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x
-     
-class GraphConv(nn.Module):
-    def __init__(self, num_node_features, nout, nhid):
-        super(GraphConv, self).__init__()
-        self.nhid = nhid
-        self.nout = nout
-        self.relu = nn.ReLU()
-        self.conv1 = GCNConv(num_node_features, nhid)
-        self.conv2 = GCNConv(nhid, nhid)
-        self.conv3 = GCNConv(nhid, nhid)
-
-        self.mol_hidden1 = nn.Linear(nhid, nhid)
-        self.mol_hidden2 = nn.Linear(nhid, nout)
-
-    def forward(self, graph_batch):
-        x = graph_batch.x
-        edge_index = graph_batch.edge_index
-        batch = graph_batch.batch
-        x = self.conv1(x, edge_index)
-        x = self.relu(x)
-        x = self.conv2(x, edge_index)
-        x = self.relu(x)
-        x = self.conv3(x, edge_index)
-        x = self.relu(x)
-        
-        x = global_max_pool(x, batch)
-        x = self.mol_hidden1(x).relu()
-        x = self.mol_hidden2(x)
-        return x
+    
     
 class GraphGATConv(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
@@ -407,7 +379,7 @@ class TextEncoder_lora(nn.Module):
         encoded_text = self.peft_model(input_ids, attention_mask=attention_mask)
         return encoded_text.last_hidden_state[:,0,:]
  
-class Model(nn.Module):
+class Model_before(nn.Module):
     def __init__(
         self, 
         model_name, 
@@ -438,3 +410,75 @@ class Model(nn.Module):
     
     def get_graph_encoder(self):
         return self.graph_encoder
+
+
+class GraphConv(nn.Module):
+    def __init__(self, num_node_features, nout, nhid):
+        super(GraphConv, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.conv1 = GCNConv(num_node_features, nhid)
+        self.conv2 = GCNConv(nhid, nhid)
+        self.conv3 = GCNConv(nhid, nout)
+
+        self.mol_hidden1 = nn.Linear(nout, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        x = self.conv1(x, edge_index)
+        x = self.relu(x)
+        x = self.conv2(x, edge_index)
+        x = self.relu(x)
+        x = self.conv3(x, edge_index)
+        z = self.relu(x)
+        
+        x = global_max_pool(z, batch)
+        x = self.mol_hidden1(x).relu()
+        x = self.mol_hidden2(x)
+        return x, z
+    
+    from torch.nn import TransformerDecoder, TransformerDecoderLayer
+    
+    class Model(nn.Module):
+        def __init__(
+            self, 
+            model_name, 
+            num_node_features, 
+            nout, 
+            nhid, 
+            graph_hidden_channels, 
+            heads,
+            device_1,
+            device_2,
+            n_heads_text, 
+            n_layers_text, 
+            hidden_dim_text, 
+            dim_text,
+            ):
+            super(Model, self).__init__()
+            self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
+            self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
+            self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nout, nhead=12), num_layers=3)
+        
+        def forward(self, graph_batch, input_ids, attention_mask):
+            graph_proj, graph_latent  = self.graph_encoder(graph_batch)
+            text_encoded = self.text_encoder(input_ids, attention_mask)
+            
+            tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None
+            tgt = self.cross_modal_decoder(text_encoded, graph_latent, tgt_mask, memory_mask,
+                                       tgt_key_padding_mask, memory_key_padding_mask)
+    
+
+            return tgt, graph_proj
+            
+            
+        
+        def get_text_encoder(self):
+            return self.text_encoder
+        
+        def get_graph_encoder(self):
+            return self.graph_encoder
