@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 1e-4,
-        'name_exp': "Cross modal",
+        'name_exp': "Cross modal + 1 layer",
         'scheduler': 'linear',
         'nb_epochs': 70,
         'batch_size': 60,
