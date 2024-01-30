@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 5e-4,
-        'name_exp': "BIG GraphEncoder_v2 + BIG SKIP + BIG TRAINING + BIG DUDE + BIG LR=5e-4 + BIG 95 EPOCHS",
+        'name_exp': "test",
         'scheduler': 'linear',
         'nb_epochs': 1,
         'batch_size': 150,
