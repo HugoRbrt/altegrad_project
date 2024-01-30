@@ -6,11 +6,11 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 1e-4,
-        'name_exp': "GCNConvSkip + skip + lr 1e-4",
+        'learning_rate': 2e-6,
+        'name_exp': "Cross modal",
         'scheduler': 'linear',
         'nb_epochs': 70,
-        'batch_size': 200,
+        'batch_size': 60,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,

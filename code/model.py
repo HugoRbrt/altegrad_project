@@ -379,7 +379,7 @@ class TextEncoder_lora(nn.Module):
         encoded_text = self.peft_model(input_ids, attention_mask=attention_mask)
         return encoded_text.last_hidden_state[:,0,:]
  
-class Model(nn.Module):
+class Model_before(nn.Module):
     def __init__(
         self, 
         model_name, 
@@ -412,9 +412,9 @@ class Model(nn.Module):
         return self.graph_encoder
 
 
-class GraphConv(nn.Module):
+class GraphConv_2(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
-        super(GraphConv, self).__init__()
+        super(GraphConv_2, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
@@ -443,7 +443,7 @@ class GraphConv(nn.Module):
     
     from torch.nn import TransformerDecoder, TransformerDecoderLayer
     
-    class Model_cross(nn.Module):
+    class Model(nn.Module):
         def __init__(
             self, 
             model_name, 
@@ -460,7 +460,7 @@ class GraphConv(nn.Module):
             dim_text,
             ):
             super(Model, self).__init__()
-            self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
+            self.graph_encoder = GraphConv_2(num_node_features, nout, nhid).to(device_1)
             self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
             self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nout, nhead=12), num_layers=3)
         
