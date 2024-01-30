@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 5e-4,
-        'name_exp': "GCNConvSkip + skip + lr 5e-4",
+        'name_exp': "Test cross attention",
         'scheduler': 'linear',
         'nb_epochs': 70,
         'batch_size': 200,
