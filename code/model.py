@@ -379,7 +379,7 @@ class TextEncoder_lora(nn.Module):
         encoded_text = self.peft_model(input_ids, attention_mask=attention_mask)
         return encoded_text.last_hidden_state[:,0,:]
  
-class Model_before(nn.Module):
+class Model(nn.Module):
     def __init__(
         self, 
         model_name, 
@@ -443,7 +443,7 @@ class GraphConv(nn.Module):
     
     from torch.nn import TransformerDecoder, TransformerDecoderLayer
     
-    class Model(nn.Module):
+    class Model_cross(nn.Module):
         def __init__(
             self, 
             model_name, 
