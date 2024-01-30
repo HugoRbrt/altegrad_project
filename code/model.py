@@ -462,7 +462,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.graph_encoder = GraphConv_2(num_node_features, nout, nhid).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
-        self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nout, nhead=12), num_layers=3)
+        self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nout, nhead=12), num_layers=3).to(device_1)
     
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_proj, graph_latent  = self.graph_encoder(graph_batch)
