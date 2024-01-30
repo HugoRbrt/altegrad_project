@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 2e-6,
+        'learning_rate': 1e-4,
         'name_exp': "Cross modal",
         'scheduler': 'linear',
         'nb_epochs': 70,
