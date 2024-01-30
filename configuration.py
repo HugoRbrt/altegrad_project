@@ -6,8 +6,8 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
-        'learning_rate': 3e-5,
-        'name_exp': "MLP 10 layers",
+        'learning_rate': 5e-4,
+        'name_exp': "MLP 10 layers 240 epochs (1/3)",
         'scheduler': 'lineair',
         'nb_epochs': 240,
         'batch_size': 200,
