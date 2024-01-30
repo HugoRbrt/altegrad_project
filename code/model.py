@@ -443,41 +443,41 @@ class GraphConv_2(nn.Module):
         return x, z
 
     
-    class Model(nn.Module):
-        def __init__(
-            self, 
-            model_name, 
-            num_node_features, 
-            nout, 
-            nhid, 
-            graph_hidden_channels, 
-            heads,
-            device_1,
-            device_2,
-            n_heads_text, 
-            n_layers_text, 
-            hidden_dim_text, 
-            dim_text,
-            ):
-            super(Model, self).__init__()
-            self.graph_encoder = GraphConv_2(num_node_features, nout, nhid).to(device_1)
-            self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
-            self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nout, nhead=12), num_layers=3)
-        
-        def forward(self, graph_batch, input_ids, attention_mask):
-            graph_proj, graph_latent  = self.graph_encoder(graph_batch)
-            text_encoded = self.text_encoder(input_ids, attention_mask)
-            
-            tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None
-            tgt = self.cross_modal_decoder(text_encoded, graph_latent, tgt_mask, memory_mask,
-                                       tgt_key_padding_mask, memory_key_padding_mask)
+class Model(nn.Module):
+    def __init__(
+        self, 
+        model_name, 
+        num_node_features, 
+        nout, 
+        nhid, 
+        graph_hidden_channels, 
+        heads,
+        device_1,
+        device_2,
+        n_heads_text, 
+        n_layers_text, 
+        hidden_dim_text, 
+        dim_text,
+        ):
+        super(Model, self).__init__()
+        self.graph_encoder = GraphConv_2(num_node_features, nout, nhid).to(device_1)
+        self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
+        self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nout, nhead=12), num_layers=3)
     
-            return graph_proj, tgt
-            
-            
+    def forward(self, graph_batch, input_ids, attention_mask):
+        graph_proj, graph_latent  = self.graph_encoder(graph_batch)
+        text_encoded = self.text_encoder(input_ids, attention_mask)
         
-        def get_text_encoder(self):
-            return self.text_encoder
+        tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None
+        tgt = self.cross_modal_decoder(text_encoded, graph_latent, tgt_mask, memory_mask,
+                                    tgt_key_padding_mask, memory_key_padding_mask)
+
+        return graph_proj, tgt
         
-        def get_graph_encoder(self):
-            return self.graph_encoder
+        
+    
+    def get_text_encoder(self):
+        return self.text_encoder
+    
+    def get_graph_encoder(self):
+        return self.graph_encoder
