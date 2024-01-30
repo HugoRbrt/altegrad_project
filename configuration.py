@@ -10,7 +10,7 @@ CFG_EXPERIMENTS = {
         'name_exp': "Test cross attention",
         'scheduler': 'linear',
         'nb_epochs': 70,
-        'batch_size': 200,
+        'batch_size': 60,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
