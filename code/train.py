@@ -258,7 +258,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     # solution.to_csv('submission.csv', index=False)
     
     with torch.no_grad():
-        # Compute graph embeddings
+        # Compute and store graph embeddings
         graph_embeddings = []
         for graph_batch in test_loader:
             graph_batch = graph_batch.to(device_1)
@@ -268,31 +268,32 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         # Initialize similarity matrix
         similarity_matrix = []
 
-        # Iterate over each text item
+        # Iterate over text batches
         for text_batch in test_text_loader:
             input_ids = text_batch['input_ids'].to(device_2)
             attention_mask = text_batch['attention_mask'].to(device_2)
 
-            text_similarity_row = []
+            batch_similarity = []
 
-            # Compute text embedding for each graph and calculate similarity
-            for graph_batch in test_loader_1:
+            # Compute text embeddings for each graph batch and calculate similarity
+            for graph_batch in test_loader:
                 graph_batch = graph_batch.to(device_1)
                 _, graph_latent = graph_model(graph_batch, with_latent=True)
                 text_x = text_model(input_ids, attention_mask, graph_batch, graph_latent)
 
                 # Calculate similarity with all graph embeddings
                 similarity = cosine_similarity(text_x, graph_embeddings)
-                text_similarity_row.extend(similarity.tolist())
+                batch_similarity.extend(similarity.tolist())
 
-            # Add the row to the similarity matrix
-            similarity_matrix.append(text_similarity_row)
+            # Add the batch similarities to the similarity matrix
+            similarity_matrix.extend(batch_similarity)
 
         # Convert to DataFrame and save
         solution = pd.DataFrame(similarity_matrix)
         solution['ID'] = solution.index
         solution = solution[['ID'] + [col for col in solution.columns if col != 'ID']]
         solution.to_csv('submission.csv', index=False)
+
     
     if not no_wandb:
         
