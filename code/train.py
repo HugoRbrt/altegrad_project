@@ -259,7 +259,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     with torch.no_grad():
         # Compute and store graph embeddings
         graph_embeddings = []
-        for graph_batch in tqdm(test_loader):
+        for graph_batch in test_loader:
             graph_batch = graph_batch.to(device_1)
             graph_proj = graph_model(graph_batch)
             graph_embeddings.extend(graph_proj.tolist())
