@@ -563,7 +563,7 @@ class Model(nn.Module):
         device_1,
         device_2):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_SuperGAT(num_node_features, nout, nhid, graph_hidden_channels,heads).to(device_1)
+        self.graph_encoder = GraphEncoder_GATv2(num_node_features, nout, nhid, graph_hidden_channels,heads).to(device_1)
         self.text_encoder = TextEncoder(model_name,n_heads_text,n_layers_text,hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
