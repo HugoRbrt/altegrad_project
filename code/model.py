@@ -469,7 +469,7 @@ class GraphEncoder_v2_cross(nn.Module):
             return x
         
 class TextEncoder_cross(nn.Module):
-    def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text, device_2):
+    def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text, nhid, nout, device_2):
         super(TextEncoder_cross, self).__init__()
         config = AutoConfig.from_pretrained(
             model_name, 
@@ -484,6 +484,12 @@ class TextEncoder_cross(nn.Module):
             )
         
         self.device = device_2
+        
+        self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(dim_text, 12, nhid), num_layers=1).to(device_2)
+        self.text_hidden1 = nn.Linear(dim_text, nhid).to(device_2)
+        self.text_hidden2 = nn.Linear(nhid, nout).to(device_2)
+        self.ln2 = nn.LayerNorm((nout)).to(device_2)
+        
         
         for name, param in self.bert.transformer.named_parameters():
             if 'layer.0' in name or 'layer.1' in name:
@@ -533,11 +539,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.temp = nn.Parameter(torch.Tensor([0.07])).to(device_2)
         self.graph_encoder = GraphEncoder_v2_cross(num_node_features, nout, nhid, graph_hidden_channels, heads, self.temp).to(device_1)
-        self.text_encoder = TextEncoder_cross(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text, device_2).to(device_2)
-        self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(dim_text, 12, nhid), num_layers=1).to(device_2)
-        self.text_hidden1 = nn.Linear(dim_text, nhid).to(device_2)
-        self.text_hidden2 = nn.Linear(nhid, nout).to(device_2)
-        self.ln2 = nn.LayerNorm((nout)).to(device_2)
+        self.text_encoder = TextEncoder_cross(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text, nhid, nout, device_2).to(device_2)
         
     
     def forward(self, graph_batch, input_ids, attention_mask):
