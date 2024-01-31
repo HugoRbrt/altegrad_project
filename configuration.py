@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 5e-4,
+        'learning_rate': 1e-4,
         'name_exp': "BIG MODEL + BIG SKIP + BIG TRAINING + BIG DUDE + BIG LR=5e-4 + BIG 95 EPOCHS",
         'scheduler': 'linear',
         'nb_epochs': 95,
