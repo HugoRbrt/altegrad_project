@@ -336,24 +336,24 @@ class AttentionPooling(nn.Module):
 class TextEncoder(nn.Module):
     def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
         super(TextEncoder, self).__init__()
-        # config = AutoConfig.from_pretrained(
-        #     model_name, 
-        #     n_heads=n_heads_text,
-        #     n_layers=n_layers_text,
-        #     hidden_dim=hidden_dim_text,
-        #     dim=dim_text,
-        #     )
+        config = AutoConfig.from_pretrained(
+            model_name, 
+            n_heads=n_heads_text,
+            n_layers=n_layers_text,
+            hidden_dim=hidden_dim_text,
+            dim=dim_text,
+            )
         self.bert = AutoModel.from_pretrained(
             model_name, 
-            # config=config,
+            config=config,
             )
         
-        # for name, param in self.bert.transformer.named_parameters():
-        #     if 'layer.0' in name or 'layer.1' in name:
-        #         param.requires_grad = False
+        for name, param in self.bert.transformer.named_parameters():
+            if 'layer.0' in name or 'layer.1' in name:
+                param.requires_grad = False
                 
-        # for param in self.bert.embeddings.parameters():
-        #     param.requires_grad = False
+        for param in self.bert.embeddings.parameters():
+            param.requires_grad = False
             
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
@@ -383,7 +383,7 @@ class TextEncoder_lora(nn.Module):
         encoded_text = self.peft_model(input_ids, attention_mask=attention_mask)
         return encoded_text.last_hidden_state[:,0,:]
  
-class Model(nn.Module):
+class Model_v2(nn.Module):
     def __init__(
         self, 
         model_name, 
@@ -399,7 +399,7 @@ class Model(nn.Module):
         hidden_dim_text, 
         dim_text,
         ):
-        super(Model, self).__init__()
+        super(Model_v2, self).__init__()
         self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         
@@ -429,7 +429,7 @@ class GraphConv_2(nn.Module):
         self.mol_hidden1 = nn.Linear(nout, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
 
-    def forward(self, graph_batch):
+    def forward(self, graph_batch, with_latent=False):
         x = graph_batch.x
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
@@ -443,10 +443,13 @@ class GraphConv_2(nn.Module):
         x = global_max_pool(z, batch)
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
-        return x, z
+        if with_latent:
+            return x, z
+        else:
+            return x
 
     
-class Model_cross(nn.Module):
+class Model(nn.Module):
     def __init__(
         self, 
         model_name, 
@@ -468,7 +471,7 @@ class Model_cross(nn.Module):
         self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nout, nhead=12), num_layers=1).to(device_1)
     
     def forward(self, graph_batch, input_ids, attention_mask):
-        graph_proj, graph_latent  = self.graph_encoder(graph_batch)
+        graph_proj, graph_latent  = self.graph_encoder(graph_batch, with_latent=True)
         text_encoded = self.text_encoder(input_ids, attention_mask)
         
         tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None

@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 1e-4,
-        'name_exp': "BIG MODEL scibert + BIG SKIP + BIG TRAINING + BIG DUDE + BIG LR=5e-4 + BIG 95 EPOCHS",
+        'name_exp': "test cross modal",
         'scheduler': 'linear',
         'nb_epochs': 60,
         'batch_size': 150,
