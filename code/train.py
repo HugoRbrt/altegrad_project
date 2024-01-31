@@ -278,7 +278,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             for graph_batch in test_loader:
                 graph_batch = graph_batch.to(device_1)
                 _, graph_latent = graph_model(graph_batch, with_latent=True)
-                text_x = text_model(input_ids, attention_mask, graph_latent)
+                text_x = text_model(input_ids, attention_mask, graph_batch, graph_latent)
 
                 # Calculate similarity with all graph embeddings
                 similarity = cosine_similarity(text_x, graph_embeddings)
