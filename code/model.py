@@ -269,7 +269,7 @@ class GraphEncoder_SuperGAT(nn.Module):
         self.skip_5 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
-        self.mol_hidden3 = nn.Linear(nhid, nout)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch):
         x = graph_batch.x
