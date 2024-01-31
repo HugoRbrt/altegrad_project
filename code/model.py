@@ -363,6 +363,36 @@ class TextEncoder(nn.Module):
         # return pooled_output   
         return encoded_text.last_hidden_state[:,0,:]
 
+class TextEncoder_v2(nn.Module):
+    def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
+        super(TextEncoder_v2, self).__init__()
+        config = AutoConfig.from_pretrained(
+            model_name, 
+            n_heads=n_heads_text,
+            n_layers=n_layers_text,
+            hidden_dim=hidden_dim_text,
+            dim=dim_text,
+            )
+        self.bert = AutoModel.from_pretrained(
+            model_name, 
+            config=config,
+            )
+        
+        for name, param in self.bert.transformer.named_parameters():
+            if 'layer.0' in name or 'layer.1' in name:
+                param.requires_grad = False
+                
+        for param in self.bert.embeddings.parameters():
+            param.requires_grad = False
+            
+    def forward(self, input_ids, attention_mask):
+        encoded_text = self.bert(input_ids, attention_mask=attention_mask)
+        
+        #print(encoded_text.last_hidden_state.size())
+        # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
+        # return pooled_output   
+        return encoded_text
+    
 class TextEncoder_lora(nn.Module):
     def __init__(self, model_name, hidden_dim):
         super(TextEncoder_lora, self).__init__() 
@@ -478,7 +508,7 @@ class Model(nn.Module):
         ):
         super(Model, self).__init__()
         self.graph_encoder = GraphEncoder_v2_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
-        self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
+        self.text_encoder = TextEncoder_v2(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nhid, nhead=12), num_layers=1).to(device_2)
         self.text_hidden1 = nn.Linear(nhid, nhid).to(device_2)
         self.text_hidden2 = nn.Linear(nhid, nout).to(device_2)
@@ -490,8 +520,8 @@ class Model(nn.Module):
         text_encoded = self.text_encoder(input_ids, attention_mask)
         
         tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None
-        text_output = self.cross_modal_decoder(text_encoded['last_hidden_state'].transpose(0,1), graph_latent, tgt_mask, memory_mask,
-                                    attention_mask==0, memory_key_padding_mask)
+        text_output = self.cross_modal_decoder(text_encoded['last_hidden_state'].transpose(0,1), graph_latent,
+                                     tgt_key_padding_mask=attention_mask==0, memory_key_padding_mask=None)
         text_x = torch.tanh(self.text_hidden1(text_output[0,:,:])) #[CLS] pooler
         text_x = self.text_hidden2(text_x)
         text_x = self.ln2(text_x)
