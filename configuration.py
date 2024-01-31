@@ -10,7 +10,7 @@ CFG_EXPERIMENTS = {
         'name_exp': "BIG MODEL GraphEncoder_v2 + scibert + LR=5e-4 + BIG 95 EPOCHS",
         'scheduler': 'linear',
         'nb_epochs': 40,
-        'batch_size': 200,
+        'batch_size': 100,
         'model_name': 'allenai/scibert_scivocab_uncased', #allenai/scibert_scivocab_uncased
         'num_node_features': 300,
         'nout':  768,
