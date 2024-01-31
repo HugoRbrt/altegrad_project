@@ -81,7 +81,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_cids_dataset, batch_size=batch_size // 4, shuffle=False)
-    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size // 4, shuffle=False)
+    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=1, shuffle=False)
 
 
     model = Model(
@@ -238,23 +238,60 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
 
     idx_to_cid = test_cids_dataset.get_idx_to_cid()
 
+    # with torch.no_grad():
+    #     graph_embeddings = []
+    #     for batch in test_loader:
+    #         for output in graph_model(batch.to(device_1)):
+    #             graph_embeddings.append(output.tolist())
+
+    #     text_embeddings = []
+    #     for batch in test_text_loader:
+    #         for output in text_model(batch['input_ids'].to(device_2), 
+    #                                 attention_mask=batch['attention_mask'].to(device_2)):
+    #             text_embeddings.append(output.tolist())
+
+    # similarity = cosine_similarity(text_embeddings, graph_embeddings)
+    # solution = pd.DataFrame(similarity)
+    # solution['ID'] = solution.index
+    # solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
+    # solution.to_csv('submission.csv', index=False)
+    
     with torch.no_grad():
+        # Compute graph embeddings
         graph_embeddings = []
-        for batch in test_loader:
-            for output in graph_model(batch.to(device_1)):
-                graph_embeddings.append(output.tolist())
+        for graph_batch in test_loader:
+            graph_batch = graph_batch.to(device_1)
+            graph_proj = graph_model(graph_batch)
+            graph_embeddings.extend(graph_proj.tolist())
 
-        text_embeddings = []
-        for batch in test_text_loader:
-            for output in text_model(batch['input_ids'].to(device_2), 
-                                    attention_mask=batch['attention_mask'].to(device_2)):
-                text_embeddings.append(output.tolist())
+        # Initialize similarity matrix
+        similarity_matrix = []
 
-    similarity = cosine_similarity(text_embeddings, graph_embeddings)
-    solution = pd.DataFrame(similarity)
-    solution['ID'] = solution.index
-    solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
-    solution.to_csv('submission.csv', index=False)
+        # Iterate over each text item
+        for text_batch in test_text_loader:
+            input_ids = text_batch['input_ids'].to(device_2)
+            attention_mask = text_batch['attention_mask'].to(device_2)
+
+            text_similarity_row = []
+
+            # Compute text embedding for each graph and calculate similarity
+            for graph_batch in test_loader:
+                graph_batch = graph_batch.to(device_1)
+                _, graph_latent = graph_model(graph_batch, with_latent=True)
+                text_x = text_model(input_ids, attention_mask, graph_latent)
+
+                # Calculate similarity with all graph embeddings
+                similarity = cosine_similarity(text_x, graph_embeddings)
+                text_similarity_row.extend(similarity.tolist())
+
+            # Add the row to the similarity matrix
+            similarity_matrix.append(text_similarity_row)
+
+        # Convert to DataFrame and save
+        solution = pd.DataFrame(similarity_matrix)
+        solution['ID'] = solution.index
+        solution = solution[['ID'] + [col for col in solution.columns if col != 'ID']]
+        solution.to_csv('submission.csv', index=False)
     
     if not no_wandb:
         
