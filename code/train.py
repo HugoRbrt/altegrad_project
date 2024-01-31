@@ -81,6 +81,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_cids_dataset, batch_size=batch_size // 4, shuffle=False)
+    test_loader_1 = DataLoader(test_cids_dataset, batch_size=1, shuffle=False)
     test_text_loader = TorchDataLoader(test_text_dataset, batch_size=1, shuffle=False)
 
 
@@ -275,7 +276,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             text_similarity_row = []
 
             # Compute text embedding for each graph and calculate similarity
-            for graph_batch in test_loader:
+            for graph_batch in test_loader_1:
                 graph_batch = graph_batch.to(device_1)
                 _, graph_latent = graph_model(graph_batch, with_latent=True)
                 text_x = text_model(input_ids, attention_mask, graph_batch, graph_latent)
