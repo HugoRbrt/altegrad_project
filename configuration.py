@@ -7,9 +7,9 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 5e-4,
-        'name_exp': "test",
+        'name_exp': "BIG GraphEncoder_v2 + BIG SKIP + BIG TRAINING + BIG DUDE + BIG LR=5e-4 + BIG 95 EPOCHS",
         'scheduler': 'linear',
-        'nb_epochs': 1,
+        'nb_epochs': 75,
         'batch_size': 150,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
@@ -25,7 +25,7 @@ CFG_EXPERIMENTS = {
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
-        'device_2': 'cuda:0',
+        'device_2': 'cuda:1',
         'with_fast_tokenizer': True,
     },
     # 1:{  
