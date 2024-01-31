@@ -416,28 +416,41 @@ class Model_v2(nn.Module):
         return self.graph_encoder
 
 
-class GraphConv_2(nn.Module):
-    def __init__(self, num_node_features, nout, nhid):
-        super(GraphConv_2, self).__init__()
+
+class GraphEncoder_v2_v2(nn.Module):
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
+        super(GraphEncoder_v2, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
-        self.conv1 = GCNConv(num_node_features, nhid)
-        self.conv2 = GCNConv(nhid, nhid)
-        self.conv3 = GCNConv(nhid, nout)
+        self.ln = nn.LayerNorm((nout))
+        self.conv1 = GATConv(num_node_features, graph_hidden_channels, heads=heads)
+        self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
+        self.conv2 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+        self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
+        self.conv3 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+        self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
-        self.mol_hidden1 = nn.Linear(nout, nhid)
+        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch, with_latent=False):
         x = graph_batch.x
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
-        x = self.conv1(x, edge_index)
+        x1 = self.conv1(x, edge_index)
+        skip_x = self.skip_1(x)  # Prepare skip connection
+        x = skip_x + x1  # Apply skip connection
         x = self.relu(x)
-        x = self.conv2(x, edge_index)
+        
+        x2 = self.conv2(x, edge_index)
+        skip_x = self.skip_2(x)  # Prepare skip connection
+        x = skip_x + x2  # Apply skip connection
         x = self.relu(x)
-        x = self.conv3(x, edge_index)
+        
+        x3 = self.conv3(x, edge_index)
+        skip_x = self.skip_3(x)  # Prepare skip connection
+        x = skip_x + x3  # Apply skip connection
         z = self.relu(x)
         
         x = global_max_pool(z, batch)
@@ -447,8 +460,6 @@ class GraphConv_2(nn.Module):
             return x, z
         else:
             return x
-
-    
 class Model(nn.Module):
     def __init__(
         self, 
@@ -466,7 +477,7 @@ class Model(nn.Module):
         dim_text,
         ):
         super(Model, self).__init__()
-        self.graph_encoder = GraphConv_2(num_node_features, nout, nhid).to(device_1)
+        self.graph_encoder = GraphEncoder_v2_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nout, nhead=12), num_layers=1).to(device_1)
     
