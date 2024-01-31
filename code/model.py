@@ -519,6 +519,7 @@ class Model(nn.Module):
         self.text_hidden1 = nn.Linear(nhid, nhid).to(device_2)
         self.text_hidden2 = nn.Linear(nhid, nout).to(device_2)
         self.ln2 = nn.LayerNorm((nout)).to(device_2)
+        self.device = device_2
         
     
     def forward(self, graph_batch, input_ids, attention_mask):
@@ -526,12 +527,12 @@ class Model(nn.Module):
         text_encoded = self.text_encoder(input_ids, attention_mask)
         
         ##
-        node_features = torch.zeros((graph_batch.num_graphs, 700, graph_latent.shape[1])).to(self.device)
+        node_features = torch.zeros((graph_batch.num_graphs, 512, graph_latent.shape[1])).to(self.device)
         for i, p in enumerate(graph_batch.ptr):
           if p == 0: 
             old_p = p
             continue
-          node_features[i - 1, :p-old_p, :] = graph_latent[old_p:torch.min(p, old_p + 700), :]
+          node_features[i - 1, :p-old_p, :] = graph_latent[old_p:torch.min(p, old_p + 512), :]
           old_p = p
         node_features = torch.transpose(node_features, 0, 1)
         ##
