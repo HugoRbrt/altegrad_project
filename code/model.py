@@ -363,35 +363,6 @@ class TextEncoder(nn.Module):
         # return pooled_output   
         return encoded_text.last_hidden_state[:,0,:]
 
-class TextEncoder_cross(nn.Module):
-    def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
-        super(TextEncoder_cross, self).__init__()
-        config = AutoConfig.from_pretrained(
-            model_name, 
-            n_heads=n_heads_text,
-            n_layers=n_layers_text,
-            hidden_dim=hidden_dim_text,
-            dim=dim_text,
-            )
-        self.bert = AutoModel.from_pretrained(
-            model_name, 
-            config=config,
-            )
-        
-        for name, param in self.bert.transformer.named_parameters():
-            if 'layer.0' in name or 'layer.1' in name:
-                param.requires_grad = False
-                
-        for param in self.bert.embeddings.parameters():
-            param.requires_grad = False
-            
-    def forward(self, input_ids, attention_mask):
-        encoded_text = self.bert(input_ids, attention_mask=attention_mask)
-        
-        #print(encoded_text.last_hidden_state.size())
-        # pooled_output = self.attentionpooling(encoded_text.last_hidden_state) 
-        # return pooled_output   
-        return encoded_text
     
 class TextEncoder_lora(nn.Module):
     def __init__(self, model_name, hidden_dim):
@@ -496,6 +467,50 @@ class GraphEncoder_v2_cross(nn.Module):
             return x, z
         else:
             return x
+        
+class TextEncoder_cross(nn.Module):
+    def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
+        super(TextEncoder_cross, self).__init__()
+        config = AutoConfig.from_pretrained(
+            model_name, 
+            n_heads=n_heads_text,
+            n_layers=n_layers_text,
+            hidden_dim=hidden_dim_text,
+            dim=dim_text,
+            )
+        self.bert = AutoModel.from_pretrained(
+            model_name, 
+            config=config,
+            )
+        
+        for name, param in self.bert.transformer.named_parameters():
+            if 'layer.0' in name or 'layer.1' in name:
+                param.requires_grad = False
+                
+        for param in self.bert.embeddings.parameters():
+            param.requires_grad = False
+            
+    def forward(self, input_ids, attention_mask, graph_batch, graph_latent):
+        encoded_text = self.bert(input_ids, attention_mask=attention_mask)
+        
+        node_features = torch.zeros((graph_batch.num_graphs, 512, graph_latent.shape[1])).to(self.device)
+        for i, p in enumerate(graph_batch.ptr):
+          if p == 0: 
+            old_p = p
+            continue
+          node_features[i - 1, :p-old_p, :] = graph_latent[old_p:torch.min(p, old_p + 512), :]
+          old_p = p
+        node_features = torch.transpose(node_features, 0, 1)
+        ##
+        tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None
+        text_output = self.cross_modal_decoder(encoded_text['last_hidden_state'].transpose(0,1), node_features,
+                                     tgt_key_padding_mask=attention_mask==0, memory_key_padding_mask=None)
+        text_x = torch.tanh(self.text_hidden1(text_output[0,:,:])) #[CLS] pooler
+        text_x = self.text_hidden2(text_x)
+        text_x = self.ln2(text_x)
+        text_x = text_x * torch.exp(self.temp)
+        return text_x
+    
 class Model_cross(nn.Module):
     def __init__(
         self, 
@@ -525,25 +540,8 @@ class Model_cross(nn.Module):
     
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_proj, graph_latent  = self.graph_encoder(graph_batch, with_latent=True)
-        text_encoded = self.text_encoder(input_ids, attention_mask)
+        text_x = self.text_encoder(input_ids, attention_mask, graph_batch, graph_latent)
         
-        ##
-        node_features = torch.zeros((graph_batch.num_graphs, 512, graph_latent.shape[1])).to(self.device)
-        for i, p in enumerate(graph_batch.ptr):
-          if p == 0: 
-            old_p = p
-            continue
-          node_features[i - 1, :p-old_p, :] = graph_latent[old_p:torch.min(p, old_p + 512), :]
-          old_p = p
-        node_features = torch.transpose(node_features, 0, 1)
-        ##
-        tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None
-        text_output = self.cross_modal_decoder(text_encoded['last_hidden_state'].transpose(0,1), node_features,
-                                     tgt_key_padding_mask=attention_mask==0, memory_key_padding_mask=None)
-        text_x = torch.tanh(self.text_hidden1(text_output[0,:,:])) #[CLS] pooler
-        text_x = self.text_hidden2(text_x)
-        text_x = self.ln2(text_x)
-        text_x = text_x * torch.exp(self.temp)
         return graph_proj, text_x
         
         
