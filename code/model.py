@@ -479,17 +479,24 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.graph_encoder = GraphEncoder_v2_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
-        self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nout, nhead=12), num_layers=1).to(device_1)
+        self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nhid, nhead=12), num_layers=1).to(device_2)
+        self.text_hidden1 = nn.Linear(nhid, nhid).to(device_2)
+        self.text_hidden2 = nn.Linear(nhid, nout).to(device_2)
+        self.ln2 = nn.LayerNorm((nout)).to(device_2)
+        self.temp = nn.Parameter(torch.Tensor([0.07])).to(device_2)
     
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_proj, graph_latent  = self.graph_encoder(graph_batch, with_latent=True)
         text_encoded = self.text_encoder(input_ids, attention_mask)
         
         tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None
-        tgt = self.cross_modal_decoder(text_encoded, graph_latent, tgt_mask, memory_mask,
-                                    tgt_key_padding_mask, memory_key_padding_mask)
-
-        return graph_proj, tgt
+        text_output = self.cross_modal_decoder(text_encoded['last_hidden_state'].transpose(0,1), graph_latent, tgt_mask, memory_mask,
+                                    attention_mask==0, memory_key_padding_mask)
+        text_x = torch.tanh(self.text_hidden1(text_output[0,:,:])) #[CLS] pooler
+        text_x = self.text_hidden2(text_x)
+        text_x = self.ln2(text_x)
+        text_x = text_x * torch.exp(self.temp)
+        return graph_proj, text_x
         
         
     
