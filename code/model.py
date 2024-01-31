@@ -538,7 +538,7 @@ class Model(nn.Module):
         ##
         tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None
         text_output = self.cross_modal_decoder(text_encoded['last_hidden_state'].transpose(0,1), node_features,
-                                     tgt_key_padding_mask=attention_mask==0, memory_key_padding_mask=node_features>0)
+                                     tgt_key_padding_mask=attention_mask==0, memory_key_padding_mask=None)
         text_x = torch.tanh(self.text_hidden1(text_output[0,:,:])) #[CLS] pooler
         text_x = self.text_hidden2(text_x)
         text_x = self.ln2(text_x)

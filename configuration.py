@@ -6,10 +6,10 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 1e-4,
+        'learning_rate': 5e-4,
         'name_exp': "test cross modal",
         'scheduler': 'linear',
-        'nb_epochs': 1,
+        'nb_epochs': 10,
         'batch_size': 150,
         'model_name': 'distilbert-base-uncased', # allenai/scibert_scivocab_uncased
         'num_node_features': 300,
