@@ -22,6 +22,7 @@ def main():
     for file_name in sys.argv[2:]:
         try:
             df = pd.read_csv(file_name)
+            df = (df - df.min()) / (df.max() - df.min()) #normalize df
             dfs.append(df)
         except FileNotFoundError:
             print(f"File not found: {file_name}")

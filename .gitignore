@@ -9,7 +9,7 @@ kaggle.json
 __pycache__/
 *.py[cod]
 *$py.class
-submissions/
+submissions/working/
 # C extensions
 *.so
 

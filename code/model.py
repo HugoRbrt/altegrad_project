@@ -28,13 +28,13 @@ class MLPModel(nn.Module):
         batch = graph_batch.batch
         
         x = self.relu(self.mol_hidden1(x))
-        x = self.relu(self.mol_hidden2(x))
+        x = self.relu(self.mol_hidden2(x))+x
         x = self.relu(self.mol_hidden3(x))
-        x = self.relu(self.mol_hidden4(x))
+        x = self.relu(self.mol_hidden4(x))+x
         x = self.relu(self.mol_hidden5(x))
-        x = self.relu(self.mol_hidden6(x))
+        x = self.relu(self.mol_hidden6(x))+x
         x = self.relu(self.mol_hidden7(x))
-        x = self.relu(self.mol_hidden8(x))
+        x = self.relu(self.mol_hidden8(x))+x
         x = self.relu(self.mol_hidden9(x))
         x = global_max_pool(x, batch)
         x = self.mol_hidden10(x)
