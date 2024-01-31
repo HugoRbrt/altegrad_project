@@ -448,7 +448,7 @@ class Model_v2(nn.Module):
 
 
 class GraphEncoder_v2_cross(nn.Module):
-    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
+    def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads, temp):
         super(GraphEncoder_v2_cross, self).__init__()
         self.nhid = nhid
         self.nout = nout
@@ -461,6 +461,7 @@ class GraphEncoder_v2_cross(nn.Module):
         self.conv3 = GCNConv(graph_hidden_channels * heads, nout)
         self.skip_3 = nn.Linear(graph_hidden_channels * heads, nout)
 
+        self.ln1 = nn.LayerNorm((nout))
         self.mol_hidden1 = nn.Linear(nout, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
 
@@ -486,6 +487,8 @@ class GraphEncoder_v2_cross(nn.Module):
         x = global_max_pool(z, batch)
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
+        x = self.ln1(x)
+        x = x * torch.exp(self.temp)
         if with_latent:
             return x, z
         else:
@@ -507,20 +510,31 @@ class Model(nn.Module):
         dim_text,
         ):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_v2_cross(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        self.temp = nn.Parameter(torch.Tensor([0.07])).to(device_2)
+        self.graph_encoder = GraphEncoder_v2_cross(num_node_features, nout, nhid, graph_hidden_channels, heads, self.temp).to(device_1)
         self.text_encoder = TextEncoder_cross(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(dim_text, 12, nhid), num_layers=1).to(device_2)
         self.text_hidden1 = nn.Linear(nhid, nhid).to(device_2)
         self.text_hidden2 = nn.Linear(nhid, nout).to(device_2)
         self.ln2 = nn.LayerNorm((nout)).to(device_2)
-        self.temp = nn.Parameter(torch.Tensor([0.07])).to(device_2)
+        
     
     def forward(self, graph_batch, input_ids, attention_mask):
         graph_proj, graph_latent  = self.graph_encoder(graph_batch, with_latent=True)
         text_encoded = self.text_encoder(input_ids, attention_mask)
         
+        ##
+        node_features = torch.zeros((graph_batch.num_graphs, self.mol_trunc_length, self.graph_hidden_channels)).to(self.device)
+        for i, p in enumerate(graph_batch.ptr):
+          if p == 0: 
+            old_p = p
+            continue
+          node_features[i - 1, :p-old_p, :] = graph_latent[old_p:torch.min(p, old_p + self.mol_trunc_length), :]
+          old_p = p
+        node_features = torch.transpose(node_features, 0, 1)
+        ##
         tgt_mask, memory_mask, tgt_key_padding_mask, memory_key_padding_mask = None, None, None, None
-        text_output = self.cross_modal_decoder(text_encoded['last_hidden_state'].transpose(0,1), graph_latent,
+        text_output = self.cross_modal_decoder(text_encoded['last_hidden_state'].transpose(0,1), node_features,
                                      tgt_key_padding_mask=attention_mask==0, memory_key_padding_mask=None)
         text_x = torch.tanh(self.text_hidden1(text_output[0,:,:])) #[CLS] pooler
         text_x = self.text_hidden2(text_x)
