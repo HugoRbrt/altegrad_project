@@ -516,7 +516,7 @@ class Model(nn.Module):
         self.graph_encoder = GraphEncoder_v2_cross(num_node_features, nout, nhid, graph_hidden_channels, heads, self.temp).to(device_1)
         self.text_encoder = TextEncoder_cross(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(dim_text, 12, nhid), num_layers=1).to(device_2)
-        self.text_hidden1 = nn.Linear(nhid, nhid).to(device_2)
+        self.text_hidden1 = nn.Linear(dim_text, nhid).to(device_2)
         self.text_hidden2 = nn.Linear(nhid, nout).to(device_2)
         self.ln2 = nn.LayerNorm((nout)).to(device_2)
         self.device = device_2
