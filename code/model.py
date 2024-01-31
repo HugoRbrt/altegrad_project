@@ -384,7 +384,7 @@ class TextEncoder_lora(nn.Module):
         encoded_text = self.peft_model(input_ids, attention_mask=attention_mask)
         return encoded_text.last_hidden_state[:,0,:]
  
-class Model(nn.Module):
+class Model_v2(nn.Module):
     def __init__(
         self, 
         model_name, 
@@ -511,7 +511,7 @@ class TextEncoder_cross(nn.Module):
         text_x = text_x * torch.exp(self.temp)
         return text_x
     
-class Model_cross(nn.Module):
+class Model(nn.Module):
     def __init__(
         self, 
         model_name, 

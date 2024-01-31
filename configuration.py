@@ -6,15 +6,15 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 5e-4,
-        'name_exp': "BIG MODEL GraphEncoder_v2 + scibert + LR=5e-4 + BIG 95 EPOCHS",
+        'learning_rate': 1e-4,
+        'name_exp': "Cross modal + 1 layer",
         'scheduler': 'linear',
-        'nb_epochs': 40,
-        'batch_size': 75,
-        'model_name': 'allenai/scibert_scivocab_uncased', #allenai/scibert_scivocab_uncased
+        'nb_epochs': 70,
+        'batch_size': 60,
+        'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
-        'nhid': 300,
+        'nhid': 1200,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
         'heads': 20,
@@ -25,7 +25,7 @@ CFG_EXPERIMENTS = {
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
-        'device_2': 'cuda:1',
+        'device_2': 'cuda:0',
         'with_fast_tokenizer': True,
     },
     # 1:{  
