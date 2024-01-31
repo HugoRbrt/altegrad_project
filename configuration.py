@@ -7,11 +7,11 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 5e-4,
-        'name_exp': "BIG MODEL GraphEncoder_v2 + LR=5e-4 + BIG 95 EPOCHS",
+        'name_exp': "BIG MODEL GraphEncoder_v2 + scibert + LR=5e-4 + BIG 95 EPOCHS",
         'scheduler': 'linear',
-        'nb_epochs': 95,
+        'nb_epochs': 40,
         'batch_size': 200,
-        'model_name': 'distilbert-base-uncased', #allenai/scibert_scivocab_uncased
+        'model_name': 'allenai/scibert_scivocab_uncased', #allenai/scibert_scivocab_uncased
         'num_node_features': 300,
         'nout':  768,
         'nhid': 900,
