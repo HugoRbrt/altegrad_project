@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 1e-4,
         'name_exp': "BIG MODEL scibert + BIG SKIP + BIG TRAINING + BIG DUDE + BIG LR=5e-4 + BIG 95 EPOCHS",
         'scheduler': 'linear',
-        'nb_epochs': 95,
+        'nb_epochs': 60,
         'batch_size': 150,
         'model_name': 'allenai/scibert_scivocab_uncased',
         'num_node_features': 300,
