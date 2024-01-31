@@ -413,7 +413,7 @@ class TextEncoder_lora(nn.Module):
         encoded_text = self.peft_model(input_ids, attention_mask=attention_mask)
         return encoded_text.last_hidden_state[:,0,:]
  
-class Model_v2(nn.Module):
+class Model(nn.Module):
     def __init__(
         self, 
         model_name, 
@@ -429,7 +429,7 @@ class Model_v2(nn.Module):
         hidden_dim_text, 
         dim_text,
         ):
-        super(Model_v2, self).__init__()
+        super(Model, self).__init__()
         self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         
@@ -495,7 +495,7 @@ class GraphEncoder_v2_cross(nn.Module):
             return x, z
         else:
             return x
-class Model(nn.Module):
+class Model_cross(nn.Module):
     def __init__(
         self, 
         model_name, 

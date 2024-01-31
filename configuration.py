@@ -7,11 +7,11 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 5e-4,
-        'name_exp': "test cross modal",
+        'name_exp': "BIG MODEL GraphEncoder_v2 + LR=5e-4 + BIG 95 EPOCHS",
         'scheduler': 'linear',
-        'nb_epochs': 20,
-        'batch_size': 150,
-        'model_name': 'distilbert-base-uncased', # allenai/scibert_scivocab_uncased
+        'nb_epochs': 95,
+        'batch_size': 200,
+        'model_name': 'distilbert-base-uncased', #allenai/scibert_scivocab_uncased
         'num_node_features': 300,
         'nout':  768,
         'nhid': 900,
@@ -25,7 +25,7 @@ CFG_EXPERIMENTS = {
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
-        'device_2': 'cuda:0',
+        'device_2': 'cuda:1',
         'with_fast_tokenizer': True,
     },
     # 1:{  
