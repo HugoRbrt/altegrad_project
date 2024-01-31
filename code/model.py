@@ -526,12 +526,12 @@ class Model(nn.Module):
         text_encoded = self.text_encoder(input_ids, attention_mask)
         
         ##
-        node_features = torch.zeros((graph_batch.num_graphs, self.mol_trunc_length, self.graph_hidden_channels)).to(self.device)
+        node_features = torch.zeros((graph_batch.num_graphs, 700, graph_latent.shape[1])).to(self.device)
         for i, p in enumerate(graph_batch.ptr):
           if p == 0: 
             old_p = p
             continue
-          node_features[i - 1, :p-old_p, :] = graph_latent[old_p:torch.min(p, old_p + self.mol_trunc_length), :]
+          node_features[i - 1, :p-old_p, :] = graph_latent[old_p:torch.min(p, old_p + 700), :]
           old_p = p
         node_features = torch.transpose(node_features, 0, 1)
         ##
