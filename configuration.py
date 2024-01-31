@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 1e-4,
         'name_exp': "test cross modal",
         'scheduler': 'linear',
-        'nb_epochs': 60,
+        'nb_epochs': 1,
         'batch_size': 150,
         'model_name': 'allenai/scibert_scivocab_uncased',
         'num_node_features': 300,
