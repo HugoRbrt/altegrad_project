@@ -10,7 +10,7 @@ CFG_EXPERIMENTS = {
         'name_exp': "Cross modal + 1 layer",
         'scheduler': 'linear',
         'nb_epochs': 1,
-        'batch_size': 150,
+        'batch_size': 100,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
