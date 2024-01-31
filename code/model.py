@@ -363,9 +363,9 @@ class TextEncoder(nn.Module):
         # return pooled_output   
         return encoded_text.last_hidden_state[:,0,:]
 
-class TextEncoder_v2(nn.Module):
+class TextEncoder_cross(nn.Module):
     def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
-        super(TextEncoder_v2, self).__init__()
+        super(TextEncoder_cross, self).__init__()
         config = AutoConfig.from_pretrained(
             model_name, 
             n_heads=n_heads_text,
@@ -447,9 +447,9 @@ class Model_v2(nn.Module):
 
 
 
-class GraphEncoder_v2_v2(nn.Module):
+class GraphEncoder_v2_cross(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
-        super(GraphEncoder_v2_v2, self).__init__()
+        super(GraphEncoder_v2_cross, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
@@ -507,9 +507,9 @@ class Model(nn.Module):
         dim_text,
         ):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_v2_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
-        self.text_encoder = TextEncoder_v2(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
-        self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(d_model=nhid, nhead=12), num_layers=1).to(device_2)
+        self.graph_encoder = GraphEncoder_v2_cross(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        self.text_encoder = TextEncoder_cross(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
+        self.cross_modal_decoder = TransformerDecoder(TransformerDecoderLayer(dim_text, 12, nhid), num_layers=1).to(device_2)
         self.text_hidden1 = nn.Linear(nhid, nhid).to(device_2)
         self.text_hidden2 = nn.Linear(nhid, nout).to(device_2)
         self.ln2 = nn.LayerNorm((nout)).to(device_2)
