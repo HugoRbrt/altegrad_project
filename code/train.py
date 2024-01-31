@@ -80,9 +80,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     device_2 = cfg['device_2']
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_cids_dataset, batch_size=batch_size // 4, shuffle=False)
-    test_loader_1 = DataLoader(test_cids_dataset, batch_size=1, shuffle=False)
-    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=1, shuffle=False)
+    test_loader = DataLoader(test_cids_dataset, batch_size=127, shuffle=False)
+    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=127, shuffle=False)
 
 
     model = Model(
@@ -260,7 +259,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     with torch.no_grad():
         # Compute and store graph embeddings
         graph_embeddings = []
-        for graph_batch in test_loader:
+        for graph_batch in tqdm(test_loader):
             graph_batch = graph_batch.to(device_1)
             graph_proj = graph_model(graph_batch)
             graph_embeddings.extend(graph_proj.tolist())
@@ -269,20 +268,37 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         similarity_matrix = []
 
         # Iterate over text batches
+        
+        i=0
         for text_batch in test_text_loader:
+            print(len(text_batch))
+            print(i)
+            i+=1
             input_ids = text_batch['input_ids'].to(device_2)
             attention_mask = text_batch['attention_mask'].to(device_2)
 
             batch_similarity = []
 
             # Compute text embeddings for each graph batch and calculate similarity
-            for graph_batch in test_loader:
-                graph_batch = graph_batch.to(device_1)
-                _, graph_latent = graph_model(graph_batch, with_latent=True)
-                text_x = text_model(input_ids, attention_mask, graph_batch, graph_latent)
+            size = len(graph_batch)
+            for idx, graph_batch in enumerate(test_loader):
+                try:
+                    graph_batch = graph_batch.to(device_1)
+                    _, graph_latent = graph_model(graph_batch, with_latent=True)
+                    text_x = text_model(input_ids, attention_mask, graph_batch, graph_latent)
+                except:
+                    graph_batch = graph_batch.to(device_1)
+                    print(len(graph_batch))
+                    print(input_ids.shape)
+                    print(attention_mask.shape)
+                    print(graph_latent.shape)
+                    _, graph_latent = graph_model(graph_batch, with_latent=True)
+                    text_x = text_model(input_ids[:-1, :], attention_mask[:-1, :], graph_batch, graph_latent)
+                    
+
 
                 # Calculate similarity with all graph embeddings
-                similarity = cosine_similarity(text_x, graph_embeddings)
+                similarity = cosine_similarity(text_x.detach().cpu(), graph_embeddings)
                 batch_similarity.extend(similarity.tolist())
 
             # Add the batch similarities to the similarity matrix
