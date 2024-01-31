@@ -428,10 +428,10 @@ class GraphEncoder_v2_v2(nn.Module):
         self.skip_1 = nn.Linear(num_node_features, graph_hidden_channels * heads)
         self.conv2 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
-        self.conv3 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
-        self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
+        self.conv3 = GCNConv(graph_hidden_channels * heads, nout)
+        self.skip_3 = nn.Linear(graph_hidden_channels * heads, nout)
 
-        self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
+        self.mol_hidden1 = nn.Linear(nout, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch, with_latent=False):
