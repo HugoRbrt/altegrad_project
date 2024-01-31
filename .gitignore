@@ -10,6 +10,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 submissions/working/
+submissions/*.csv
+submissions/*.tsv
 # C extensions
 *.so
 
