@@ -464,6 +464,8 @@ class GraphEncoder_v2_cross(nn.Module):
         self.ln1 = nn.LayerNorm((nout))
         self.mol_hidden1 = nn.Linear(nout, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
+        
+        self.temp = temp
 
     def forward(self, graph_batch, with_latent=False):
         x = graph_batch.x
