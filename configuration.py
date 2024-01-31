@@ -11,7 +11,7 @@ CFG_EXPERIMENTS = {
         'scheduler': 'linear',
         'nb_epochs': 1,
         'batch_size': 150,
-        'model_name': 'distilbert-base-uncased',
+        'model_name': 'distilbert-base-uncased', # allenai/scibert_scivocab_uncased
         'num_node_features': 300,
         'nout':  768,
         'nhid': 900,
@@ -25,7 +25,7 @@ CFG_EXPERIMENTS = {
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
-        'device_2': 'cuda:1',
+        'device_2': 'cuda:0',
         'with_fast_tokenizer': True,
     },
     # 1:{  
