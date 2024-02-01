@@ -7,7 +7,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0:{
         'who': 'matteo',
-        'learning_rate': 8e-4,
+        'learning_rate': 5e-4,
         'name_exp': " 4 GATv2 + 90 Epochs + 192 batchsize + 2 devices training + FLOAT16 + bigLR ",
         'scheduler': 'linear',
         'nb_epochs': 90,
@@ -17,8 +17,8 @@ CFG_EXPERIMENTS = {
         'nout':  768,
         'nhid': 1200,
         'graph_hidden_channels': 300,
-        'num_warmup_steps': 1000,
-        'heads': 5,
+        'num_warmup_steps': 1500,
+        'heads': 10,
         'comment': '4 Gatv2 + big batch size',
         'T_max': '',
         'n_heads_text':12, 
