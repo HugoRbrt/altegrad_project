@@ -6,15 +6,15 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 5e-4,
-        'name_exp': "Cross modal + 1 layer",
+        'learning_rate': 8e-4,
+        'name_exp': "Last big training skip + graphencoer_GAT",
         'scheduler': 'linear',
         'nb_epochs': 30,
-        'batch_size': 100,
+        'batch_size': 200,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
-        'nhid': 1200,
+        'nhid': 900,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
         'heads': 20,
@@ -25,7 +25,7 @@ CFG_EXPERIMENTS = {
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
-        'device_2': 'cuda:0',
+        'device_2': 'cuda:1',
         'with_fast_tokenizer': True,
     },
     # 1:{  

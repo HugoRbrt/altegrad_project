@@ -336,24 +336,24 @@ class AttentionPooling(nn.Module):
 class TextEncoder(nn.Module):
     def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
         super(TextEncoder, self).__init__()
-        # config = AutoConfig.from_pretrained(
-        #     model_name, 
-        #     n_heads=n_heads_text,
-        #     n_layers=n_layers_text,
-        #     hidden_dim=hidden_dim_text,
-        #     dim=dim_text,
-        #     )
+        config = AutoConfig.from_pretrained(
+            model_name, 
+            n_heads=n_heads_text,
+            n_layers=n_layers_text,
+            hidden_dim=hidden_dim_text,
+            dim=dim_text,
+            )
         self.bert = AutoModel.from_pretrained(
             model_name, 
-            # config=config,
+            config=config,
             )
         
-        # for name, param in self.bert.transformer.named_parameters():
-        #     if 'layer.0' in name or 'layer.1' in name:
-        #         param.requires_grad = False
+        for name, param in self.bert.transformer.named_parameters():
+            if 'layer.0' in name or 'layer.1' in name:
+                param.requires_grad = False
                 
-        # for param in self.bert.embeddings.parameters():
-        #     param.requires_grad = False
+        for param in self.bert.embeddings.parameters():
+            param.requires_grad = False
             
     def forward(self, input_ids, attention_mask):
         encoded_text = self.bert(input_ids, attention_mask=attention_mask)
@@ -384,7 +384,7 @@ class TextEncoder_lora(nn.Module):
         encoded_text = self.peft_model(input_ids, attention_mask=attention_mask)
         return encoded_text.last_hidden_state[:,0,:]
  
-class Model_v2(nn.Module):
+class Model(nn.Module):
     def __init__(
         self, 
         model_name, 
@@ -520,7 +520,7 @@ class TextEncoder_cross(nn.Module):
         text_x = text_x * torch.exp(self.temp)
         return text_x
     
-class Model(nn.Module):
+class Model_cross(nn.Module):
     def __init__(
         self, 
         model_name, 
