@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 5e-4,
-        'name_exp': "Last Dance NLPLS training skip + graphencoer_GAT",
+        'name_exp': "Last Dance NLPLS training skip + GCNConvSkip",
         'scheduler': 'linear',
         'nb_epochs': 90,
         'batch_size': 200,
