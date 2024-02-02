@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'matteo',
         'learning_rate': 8e-4,
-        'name_exp': "MLP12 Layers + Dropout",
+        'name_exp': "SAGECONV",
         'scheduler': 'linear',
         'nb_epochs': 65,
         'batch_size': 96,
