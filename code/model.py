@@ -51,9 +51,9 @@ class MLPModelSKIP(nn.Module):
         x = self.relu(self.mol_hidden5(x))
         x = self.relu(self.mol_hidden6(x))+x
         x = self.relu(self.mol_hidden7(x))
-        x = self.relu(self.mol_hidden8(x))
-        x = self.relu(self.mol_hidden9(x))
-        x = self.relu(self.mol_hidden10(x))
+        x = self.relu(self.mol_hidden8(x)) + x
+        x = self.relu(self.mol_hidden9(x)) 
+        x = self.relu(self.mol_hidden10(x)) + x
         x = self.relu(self.mol_hidden11(x))
         x = global_max_pool(x, batch)
         x = self.mol_hidden12(x)
@@ -653,7 +653,7 @@ class Model(nn.Module):
         device_1,
         device_2):
         super(Model, self).__init__()
-        self.graph_encoder = MLPModelSKIPDROPOUT(num_node_features, nout, nhid).to(device_1)
+        self.graph_encoder = MLPModelSKIP(num_node_features, nout, nhid).to(device_1)
         self.text_encoder = TextEncoder(model_name,n_heads_text,n_layers_text,hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
