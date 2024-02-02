@@ -81,8 +81,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     device_2 = cfg['device_2']
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_cids_dataset, batch_size=127, shuffle=False)
-    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=127, shuffle=False)
+    test_loader = DataLoader(test_cids_dataset, batch_size=batch_size//4, shuffle=False)
+    test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size//4, shuffle=False)
 
 
     model = Model(
