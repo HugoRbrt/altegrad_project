@@ -2,7 +2,7 @@
 #############################################################################################################
 #############################################################################################################
 # Import libraries
-from .model import Model
+from .model import Model,ModelACCELERATE
 from .data_loader import GraphTextDataset, GraphDataset, TextDataset
 from torch import optim
 from sklearn.metrics.pairwise import cosine_similarity
@@ -62,6 +62,11 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         cpu (bool, optional): if True, force CPU. Defaults to False.
         no_wandb (bool, optional): if True, disable wandb. Defaults to False.
     """
+    # Set our seed
+    set_seed(42)
+    kwargs = [DistributedDataParallelKwargs(find_unused_parameters=True), FP8RecipeKwargs(backend="msamp")]
+    accelerator = Accelerator(mixed_precision=mixed_precision, kwargs_handlers=kwargs)
+    
     if not no_wandb:
         run = wandb.init(
         project="text2mol",
@@ -95,19 +100,34 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     test_text_loader = TorchDataLoader(test_text_dataset, batch_size=batch_size // 4, shuffle=False)
                     
     # model = Model(model_name=model_name, num_node_features=cfg['num_node_features'], nout=cfg['nout'], nhid=cfg['nhid'], graph_hidden_channels=cfg['graph_hidden_channels'],n_heads_text=cfg['n_heads_text'],n_layers_text=['n_layers_text'],hidden_dim_text=cfg['hidden_dim_text'],dim_text=cfg['dim_text'],heads=cfg['heads']) # nout = bert model hidden dim
-    model = Model(model_name=model_name, 
-                  num_node_features=cfg['num_node_features'], 
-                  nout=cfg['nout'], nhid=cfg['nhid'], 
-                  graph_hidden_channels=cfg['graph_hidden_channels'],
-                  heads = cfg['heads'],
-                  n_heads_text=cfg['n_heads_text'],
-                  n_layers_text=cfg['n_layers_text'],
-                  hidden_dim_text=cfg['hidden_dim_text'],
-                  dim_text=cfg['dim_text'],
-                  device_1=device_1, 
-                  device_2=device_2) # nout = bert model hidden dim
+    # model = ModelACCELERATE(model_name=model_name, 
+    #               num_node_features=cfg['num_node_features'], 
+    #               nout=cfg['nout'], nhid=cfg['nhid'], 
+    #               graph_hidden_channels=cfg['graph_hidden_channels'],
+    #               heads = cfg['heads'],
+    #               n_heads_text=cfg['n_heads_text'],
+    #               n_layers_text=cfg['n_layers_text'],
+    #               hidden_dim_text=cfg['hidden_dim_text'],
+    #               dim_text=cfg['dim_text'],
+    #               device_1=device_1, 
+    #               device_2=device_2) # nout = bert model hidden dim
     #model.to(device)
-    print(model)
+    # print(model)
+    with accelerator.main_process_first():
+        model = ModelACCELERATE(model_name=model_name, 
+                num_node_features=cfg['num_node_features'], 
+                nout=cfg['nout'], nhid=cfg['nhid'], 
+                graph_hidden_channels=cfg['graph_hidden_channels'],
+                heads = cfg['heads'],
+                n_heads_text=cfg['n_heads_text'],
+                n_layers_text=cfg['n_layers_text'],
+                hidden_dim_text=cfg['hidden_dim_text'],
+                dim_text=cfg['dim_text'],
+                device_1=device_1, 
+                device_2=device_2) # nout = bert model hidden dim
+        print(model)
+
+    
 
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
@@ -120,7 +140,9 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     
     # scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     # scheduler_expo = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=-1, verbose=False)
-
+    model, optimizer, train_loader, val_loader, scheduler_lr = accelerator.prepare(
+        model, optimizer, train_loader, val_loader, scheduler_lr
+    )
     epoch = 0
     loss = 0
     losses = []
@@ -141,17 +163,22 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             graph_batch = batch
 
             with autocast():
-                x_graph, x_text = model(graph_batch.to(device_1), 
+                x_graph, x_text,current_loss = model(graph_batch.to(device_1), 
                                         input_ids.to(device_2), 
                                         attention_mask.to(device_2))
-            current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
-            optimizer.zero_grad()
+            #current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))  
+            accelerator.backward(current_loss) 
             # current_loss.backward()
-            # optimizer.step()
-            scaler.scale(current_loss).backward()  # Backpropagation
-            scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
-            scaler.update() 
+            optimizer.step()
             scheduler_lr.step()
+            optimizer.zero_grad()
+
+            loss += current_loss.item()
+            
+
+            # scaler.scale(current_loss).backward()  # Backpropagation
+            # scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
+            # scaler.update() 
             loss += current_loss.item()
             
             count_iter += 1
@@ -191,7 +218,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 attention_mask = batch.attention_mask
                 batch.pop('attention_mask')
                 graph_batch = batch
-                x_graph, x_text = model(graph_batch.to(device_1), 
+                x_graph, x_text,current_loss = model(graph_batch.to(device_1), 
                                         input_ids.to(device_2), 
                                         attention_mask.to(device_2))
                 for i in range(x_graph.shape[0]):

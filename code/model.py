@@ -298,8 +298,6 @@ class GraphEncoder_SuperGAT(nn.Module):
         self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
         self.conv4 = SuperGATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_4 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
-        self.conv5 = SuperGATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
-        self.skip_5 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
@@ -326,11 +324,6 @@ class GraphEncoder_SuperGAT(nn.Module):
         x4 = self.conv4(x, edge_index)
         skip_x = self.skip_4(x)  # Prepare skip connection
         x = skip_x + x4  # Apply skip connection
-        x = self.relu(x)
-
-        x5 = self.conv5(x, edge_index)
-        skip_x = self.skip_5(x)  # Prepare skip connection
-        x = skip_x + x5  # Apply skip connection
         x = self.relu(x)
         
         x = global_max_pool(x, batch)
@@ -580,7 +573,48 @@ class TextEncoder(nn.Module):
     
 #############################################################################################################
 #############################################################################################################
-class Model(nn.Module):
+# class Model(nn.Module):
+#     def __init__(
+#         self,
+#         model_name,
+#         num_node_features,
+#         nout,
+#         nhid,
+#         graph_hidden_channels,
+#         heads,
+#         n_heads_text,
+#         n_layers_text,
+#         hidden_dim_text,
+#         dim_text,
+#         device_1,
+#         device_2):
+#         super(Model, self).__init__()
+#         self.graph_encoder = MLPModelSKIP(num_node_features, nout, nhid).to(device_1)
+#         self.text_encoder = TextEncoder(model_name,n_heads_text,n_layers_text,hidden_dim_text, dim_text).to(device_2)
+        
+#     def forward(self, graph_batch, input_ids, attention_mask):
+#         graph_encoded = self.graph_encoder(graph_batch)
+#         text_encoded = self.text_encoder(input_ids, attention_mask)
+        
+#         return graph_encoded, text_encoded
+    
+#     def get_text_encoder(self):
+#         return self.text_encoder
+    
+#     def get_graph_encoder(self):
+#         return self.graph_encoder
+    
+#############################################################################################################
+# Define loss function
+CE = torch.nn.CrossEntropyLoss()
+
+def contrastive_loss(v1, v2):
+    v1, v2 = v1.float(), v2.float()
+    logits = torch.matmul(v1,torch.transpose(v2, 0, 1))
+    labels = torch.arange(logits.shape[0], device=v1.device)
+    return CE(logits, labels) + CE(torch.transpose(logits, 0, 1), labels)    
+
+class ModelACCELERATE(nn.Module):
     def __init__(
         self,
         model_name,
@@ -595,15 +629,18 @@ class Model(nn.Module):
         dim_text,
         device_1,
         device_2):
-        super(Model, self).__init__()
-        self.graph_encoder = MLPModelSKIP(num_node_features, nout, nhid).to(device_1)
+        super(ModelACCELERATE, self).__init__()
+        self.graph_encoder = SuperGATConv(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name,n_heads_text,n_layers_text,hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
+        #graph_batch = graph_batch.to("cuda:0")
         graph_encoded = self.graph_encoder(graph_batch)
+        #input_ids = input_ids.to("cuda:1")
+        #attention_mask = attention_mask.to("cuda:1")
         text_encoded = self.text_encoder(input_ids, attention_mask)
-        
-        return graph_encoded, text_encoded
+        current_loss = contrastive_loss(graph_encoded, text_encoded)
+        return graph_encoded, text_encoded, current_loss
     
     def get_text_encoder(self):
         return self.text_encoder
