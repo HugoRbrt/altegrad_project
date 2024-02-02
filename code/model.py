@@ -644,7 +644,7 @@ class Model(nn.Module):
         num_node_features,
         nout,
         nhid,
-        graph_hidden_channels,dzd
+        graph_hidden_channels,
         heads,
         n_heads_text,
         n_layers_text,
