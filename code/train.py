@@ -15,7 +15,8 @@ from torch.utils.data import DataLoader as TorchDataLoader
 import numpy as np
 from transformers import AutoTokenizer
 from transformers.optimization import get_linear_schedule_with_warmup
-
+import umap.umap_ as umap
+import matplotlib.pyplot as plt
 
 CE = torch.nn.CrossEntropyLoss()
 
@@ -183,6 +184,43 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 val_loss += current_loss.item()
         
         similarity = cosine_similarity(text_embeddings, graph_embeddings)
+        
+
+        # Assuming graph_embeddings_array and text_embeddings_array are your numpy arrays
+        # with shapes (n_samples, n_features) for graph and text embeddings respectively
+
+        # Step 2: Apply UMAP to reduce dimensions separately
+        reducer_graph = umap.UMAP(random_state=42)
+        reducer_text = umap.UMAP(random_state=42)
+
+        umap_graph = reducer_graph.fit_transform(np.array(graph_embeddings))
+        umap_text = reducer_text.fit_transform(np.array(graph_embeddings))
+
+        # Step 3: Generate a unique color for each pair of points
+        # This creates a list of colors, one for each sample
+        colors = plt.cm.rainbow(np.linspace(0, 1, umap_graph.shape[0]))
+
+        plot_filename = f"umap_plot_{str(uuid.uuid4())}.png"
+        plt.figure(figsize=(12, 8))
+        plt.scatter(umap_graph[:, 0], umap_graph[:, 1], color=colors, alpha=0.5, label='Graph Embeddings')
+        plt.scatter(umap_text[:, 0], umap_text[:, 1], color=colors, alpha=0.5, label='Text Embeddings')
+        plt.legend()
+        plt.title('UMAP Projection of Graph and Text Embeddings')
+        plt.savefig(plot_filename)
+        plt.close()  # Close the plot to free up memory
+
+        # Step 2: Log the figure to wandb
+        if not no_wandb:  # Assuming no_wandb is a variable that controls wandb logging
+            # Log the image file as an artifact
+            plot_artifact = wandb.Artifact('plot_artifact_' + str(uuid.uuid4()).replace("-", ""), type='plot')
+            plot_artifact.add_file(plot_filename)
+            wandb.log_artifact(plot_artifact)
+            
+            # Optionally, directly log the image under the current run (not as an artifact)
+            wandb.log({"UMAP Projections": wandb.Image(plot_filename)})
+
+        # Remember to delete the local file if it's no longer needed
+        os.remove(plot_filename)
         n_samples = len(text_embeddings)
         labels = np.eye(n_samples)
 
