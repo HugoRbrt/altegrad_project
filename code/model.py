@@ -34,10 +34,10 @@ class MLPModelSKIP(nn.Module):
         self.mol_hidden5 = nn.Linear(nhid, nhid)
         self.mol_hidden6 = nn.Linear(nhid, nhid)
         self.mol_hidden7 = nn.Linear(nhid, nhid)
-        self.mol_hidden8 = nn.Linear(nhid, nout)
-        self.mol_hidden9 = nn.Linear(nhid, nout)
-        self.mol_hidden10 = nn.Linear(nhid, nout)
-        self.mol_hidden11 = nn.Linear(nhid, nout)
+        self.mol_hidden8 = nn.Linear(nhid, nhid)
+        self.mol_hidden9 = nn.Linear(nhid, nhid)
+        self.mol_hidden10 = nn.Linear(nhid, nhid)
+        self.mol_hidden11 = nn.Linear(nhid, nhid)
         self.mol_hidden12 = nn.Linear(nhid, nout)
     def forward(self, graph_batch):
         x = graph_batch.x
