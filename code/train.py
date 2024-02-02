@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader as TorchDataLoader
 import numpy as np
 from transformers import AutoTokenizer
 from transformers.optimization import get_linear_schedule_with_warmup
-import umap.umap_ as umap
+# import umap.umap_ as umap
 import matplotlib.pyplot as plt
 
 CE = torch.nn.CrossEntropyLoss()
@@ -85,20 +85,17 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     test_text_loader = TorchDataLoader(test_text_dataset, batch_size=127, shuffle=False)
 
 
-    model = Model(
-        model_name=model_name, 
-        num_node_features=cfg['num_node_features'], 
-        nout=cfg['nout'], 
-        nhid=cfg['nhid'], 
-        graph_hidden_channels=cfg['graph_hidden_channels'], 
-        heads=cfg['heads'], 
-        device_1=device_1, 
-        device_2=device_2, 
-        n_heads_text=cfg['n_heads_text'], 
-        n_layers_text=cfg['n_layers_text'], 
-        hidden_dim_text=cfg['hidden_dim_text'], 
-        dim_text=cfg['dim_text']
-        ) # nout = bert model hidden dim
+    model = Model(model_name=model_name, 
+                  num_node_features=cfg['num_node_features'], 
+                  nout=cfg['nout'], nhid=cfg['nhid'], 
+                  graph_hidden_channels=cfg['graph_hidden_channels'],e
+                  heads = cfg['heads'],
+                  n_heads_text=cfg['n_heads_text'],
+                  n_layers_text=cfg['n_layers_text'],
+                  hidden_dim_text=cfg['hidden_dim_text'],
+                  dim_text=cfg['dim_text'],
+                  device_1=device_1, 
+                  device_2=device_2) # nout = bert model hidden dim
     # model.to(device)
     print(model)
     # checkpoint = torch.load('/kaggle/input/model61/model61.pt')
