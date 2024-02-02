@@ -262,11 +262,13 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     # with shapes (n_samples, n_features) for graph and text embeddings respectively
 
     # Step 2: Apply UMAP to reduce dimensions separately
-    reducer_graph = umap.UMAP(random_state=42)
-    reducer_text = umap.UMAP(random_state=42)
+    reducer = umap.UMAP(random_state=42)
 
-    umap_graph = reducer_graph.fit_transform(np.array(graph_embeddings))
-    umap_text = reducer_text.fit_transform(np.array(graph_embeddings))
+
+    reducer.fit(np.array(graph_embeddings))
+    
+    umap_graph = reducer.transform(np.array(graph_embeddings))
+    umap_text = reducer.transform(np.array(text_embeddings))
 
     # Step 3: Generate a unique color for each pair of points
     # This creates a list of colors, one for each sample
