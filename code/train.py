@@ -271,7 +271,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     # Step 3: Generate a unique color for each pair of points
     # This creates a list of colors, one for each sample
     num_samples = 3301
-    colors = plt.cm.get_cmap('viridis', num_samples)
+    colors = plt.cm.rainbow(np.linspace(0, 1, umap_graph.shape[0]))
 
     plot_filename = f"umap_plot_{str(uuid.uuid4())}.png"
     plt.figure(figsize=(12, 8))
