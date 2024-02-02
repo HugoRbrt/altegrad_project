@@ -1,4 +1,8 @@
-from .model import Model
+# Authors: Baptiste CALLARD, Matteo MARENGO, Hugo ROBERT
+#############################################################################################################
+#############################################################################################################
+# Import libraries
+from .model import Model,ModelACCELERATE
 from .data_loader import GraphTextDataset, GraphDataset, TextDataset
 from torch import optim
 from sklearn.metrics.pairwise import cosine_similarity
@@ -15,8 +19,11 @@ from torch.utils.data import DataLoader as TorchDataLoader
 import numpy as np
 from transformers import AutoTokenizer
 from transformers.optimization import get_linear_schedule_with_warmup
-# import umap.umap_ as umap
-import matplotlib.pyplot as plt
+# Accelerate parts
+from accelerate import Accelerator, notebook_launcher # main interface, distributed launcher
+from accelerate.utils import set_seed # reproducability across devices
+
+
 
 CE = torch.nn.CrossEntropyLoss()
 
@@ -283,30 +290,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
 
 
 
-# # Authors: Baptiste CALLARD, Matteo MARENGO, Hugo ROBERT
-# #############################################################################################################
-# #############################################################################################################
-# # Import libraries
-# from .model import Model,ModelACCELERATE
-# from .data_loader import GraphTextDataset, GraphDataset, TextDataset
-# from torch import optim
-# from sklearn.metrics.pairwise import cosine_similarity
-# from sklearn.metrics import label_ranking_average_precision_score
-# import time
-# from torch_geometric.data import DataLoader
-# import wandb
-# import torch
-# import uuid
-# import os
-# import pandas as pd
-# from torch.cuda.amp import GradScaler, autocast
-# from torch.utils.data import DataLoader as TorchDataLoader
-# import numpy as np
-# from transformers import AutoTokenizer
-# from transformers.optimization import get_linear_schedule_with_warmup
-# # Accelerate parts
-# from accelerate import Accelerator, notebook_launcher # main interface, distributed launcher
-# from accelerate.utils import set_seed # reproducability across devices
+
 
 
 # #############################################################################################################
