@@ -630,7 +630,7 @@ class ModelACCELERATE(nn.Module):
         device_1,
         device_2):
         super(ModelACCELERATE, self).__init__()
-        self.graph_encoder = SuperGATConv(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        self.graph_encoder = GraphEncoder_SuperGAT(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name,n_heads_text,n_layers_text,hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
