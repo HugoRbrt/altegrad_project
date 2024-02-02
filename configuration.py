@@ -21,7 +21,7 @@ CFG_EXPERIMENTS = {
         'heads': 10,
         'comment': '4 Gatv2 + big batch size',
         'T_max': '',
-        'n_heads_text':12, 
+        'n_heads_text':8, 
         'n_layers_text':4, 
         'hidden_dim_text':3072, 
         'dim_text':768,
