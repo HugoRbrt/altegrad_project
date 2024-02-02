@@ -35,6 +35,10 @@ class MLPModelSKIP(nn.Module):
         self.mol_hidden6 = nn.Linear(nhid, nhid)
         self.mol_hidden7 = nn.Linear(nhid, nhid)
         self.mol_hidden8 = nn.Linear(nhid, nout)
+        self.mol_hidden9 = nn.Linear(nhid, nout)
+        self.mol_hidden10 = nn.Linear(nhid, nout)
+        self.mol_hidden11 = nn.Linear(nhid, nout)
+        self.mol_hidden12 = nn.Linear(nhid, nout)
     def forward(self, graph_batch):
         x = graph_batch.x
         edge_index = graph_batch.edge_index
@@ -47,10 +51,70 @@ class MLPModelSKIP(nn.Module):
         x = self.relu(self.mol_hidden5(x))
         x = self.relu(self.mol_hidden6(x))+x
         x = self.relu(self.mol_hidden7(x))
+        x = self.relu(self.mol_hidden8(x))
+        x = self.relu(self.mol_hidden9(x))
+        x = self.relu(self.mol_hidden10(x))
+        x = self.relu(self.mol_hidden11(x))
         x = global_max_pool(x, batch)
-        x = self.mol_hidden8(x)
+        x = self.mol_hidden12(x)
         x = self.ln(x)
         x = x * torch.exp(self.temp)
+        return x
+
+############################################################################################################# 
+
+class MLPModelSKIPDROPOUT(nn.Module):
+    def __init__(self, num_node_features, nout, nhid):
+        super(MLPModelSKIPDROPOUT, self).__init__()
+        self.temp = nn.Parameter(torch.Tensor([0.07]))
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm(nout)
+        self.dropout = nn.Dropout(p=0.5)
+
+        # Initial layer
+        self.mol_hidden1 = nn.Linear(num_node_features, nhid)
+        self.bn1 = nn.BatchNorm1d(nhid)
+
+        # Define blocks of layers with BatchNorm and skip connections
+        self.blocks = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(nhid, nhid),
+                nn.BatchNorm1d(nhid),
+                nn.ReLU(),
+                nn.Dropout(p=0.5)
+            ) for _ in range(7)  # Adjust the range for more or fewer blocks
+        ])
+
+        # Output layers
+        self.output_layers = nn.ModuleList([
+            nn.Linear(nhid, nout) for _ in range(4)
+        ])
+
+        self.final_ln = nn.LayerNorm(nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        batch = graph_batch.batch
+        
+        # Initial transformation
+        x = self.bn1(self.mol_hidden1(x))
+        x = self.relu(x)
+        x = self.dropout(x)
+
+        # Apply blocks of layers with skip connections
+        for block in self.blocks:
+            identity = x
+            x = block(x) + identity  # Skip connection
+
+        # Combine features from different depths
+        for output_layer in self.output_layers:
+            identity = x  # For the final output, consider accumulating instead of overriding `x`
+            x = self.dropout(self.relu(output_layer(x))) + identity
+
+        x = global_max_pool(x, batch)  # Pooling over the batch
+        x = self.final_ln(x)  # Final layer normalization
+        x = x * torch.exp(self.temp)  # Apply learnable temperature scaling
+
         return x
 #############################################################################################################
 # Baseline Model Graph Encoder
