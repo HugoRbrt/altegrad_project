@@ -68,7 +68,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     # Set our seed
     set_seed(42)
     # kwargs = [DistributedDataParallelKwargs(find_unused_parameters=True), FP8RecipeKwargs(backend="msamp")]
-    mixed_precision:str="fp8"
+    mixed_precision:str="fp16"
     accelerator = Accelerator(mixed_precision=mixed_precision)
     
     if not no_wandb:
