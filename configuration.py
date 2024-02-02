@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 8e-4,
         'name_exp': "MLP12 Layers + Dropout",
         'scheduler': 'linear',
-        'nb_epochs': 2,
+        'nb_epochs': 65,
         'batch_size': 180,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
