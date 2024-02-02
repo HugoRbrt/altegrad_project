@@ -95,7 +95,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     model = Model(model_name=model_name, 
                   num_node_features=cfg['num_node_features'], 
                   nout=cfg['nout'], nhid=cfg['nhid'], 
-                  graph_hidden_channels=cfg['graph_hidden_channels'],e
+                  graph_hidden_channels=cfg['graph_hidden_channels'],
                   heads = cfg['heads'],
                   n_heads_text=cfg['n_heads_text'],
                   n_layers_text=cfg['n_layers_text'],
