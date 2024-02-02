@@ -10,7 +10,7 @@ CFG_EXPERIMENTS = {
         'name_exp': "MLP 10 layers + skip",
         'scheduler': 'lineair',
         'nb_epochs': 85,
-        'batch_size': 250,
+        'batch_size': 224,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
