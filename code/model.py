@@ -18,7 +18,40 @@ import torch_geometric.nn as pyg_nn
 
 #############################################################################################################
 #############################################################################################################
+# MLP MODELS HUGO
 
+class MLPModelSKIP(nn.Module):
+    def __init__(self, num_node_features, nout, nhid):
+        super(MLPModelSKIP, self).__init__()
+        self.temp = nn.Parameter(torch.Tensor([0.07]))
+        self.register_parameter( 'temp' , self.temp )
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm((nout))
+        self.mol_hidden1 = nn.Linear(num_node_features, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nhid)
+        self.mol_hidden3 = nn.Linear(nhid, nhid)
+        self.mol_hidden4 = nn.Linear(nhid, nhid)
+        self.mol_hidden5 = nn.Linear(nhid, nhid)
+        self.mol_hidden6 = nn.Linear(nhid, nhid)
+        self.mol_hidden7 = nn.Linear(nhid, nhid)
+        self.mol_hidden8 = nn.Linear(nhid, nout)
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        
+        x = self.relu(self.mol_hidden1(x))
+        x = self.relu(self.mol_hidden2(x))+x
+        x = self.relu(self.mol_hidden3(x))+x
+        x = self.relu(self.mol_hidden4(x))+x
+        x = self.relu(self.mol_hidden5(x))
+        x = self.relu(self.mol_hidden6(x))+x
+        x = self.relu(self.mol_hidden7(x))
+        x = global_max_pool(x, batch)
+        x = self.mol_hidden8(x)
+        x = self.ln(x)
+        x = x * torch.exp(self.temp)
+        return x
 #############################################################################################################
 # Baseline Model Graph Encoder
 class GraphEncoder_ORIGINAL(nn.Module):
@@ -563,7 +596,7 @@ class Model(nn.Module):
         device_1,
         device_2):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_GATv2(num_node_features, nout, nhid, graph_hidden_channels,heads).to(device_1)
+        self.graph_encoder = MLPModelSKIP(num_node_features, nout, nhid).to(device_1)
         self.text_encoder = TextEncoder(model_name,n_heads_text,n_layers_text,hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
