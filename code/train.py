@@ -2,7 +2,7 @@
 #############################################################################################################
 #############################################################################################################
 # Import libraries
-from .model import Model,ModelACCELERATE
+from .model import Model
 from .data_loader import GraphTextDataset, GraphDataset, TextDataset
 from torch import optim
 from sklearn.metrics.pairwise import cosine_similarity
@@ -20,8 +20,8 @@ import numpy as np
 from transformers import AutoTokenizer
 from transformers.optimization import get_linear_schedule_with_warmup
 # Accelerate parts
-from accelerate import Accelerator, notebook_launcher # main interface, distributed launcher
-from accelerate.utils import set_seed # reproducability across devices
+# from accelerate import Accelerator, notebook_launcher # main interface, distributed launcher
+# from accelerate.utils import set_seed # reproducability across devices
 
 
 
