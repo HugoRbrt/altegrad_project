@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 8e-4,
         'name_exp': "Last Dance NLPLS training skip + graphencoer_GAT",
         'scheduler': 'linear',
-        'nb_epochs': 1,
+        'nb_epochs': 87,
         'batch_size': 200,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
@@ -25,7 +25,7 @@ CFG_EXPERIMENTS = {
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
-        'device_2': 'cuda:0',
+        'device_2': 'cuda:1',
         'with_fast_tokenizer': True,
     },
     # 1:{  
