@@ -7,10 +7,10 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': GIT_USER,
         'learning_rate': 5e-4,
-        'name_exp': "MLP 8 layers + skip",
+        'name_exp': "MLP 10 layers + skip",
         'scheduler': 'lineair',
-        'nb_epochs': 95,
-        'batch_size': 200,
+        'nb_epochs': 85,
+        'batch_size': 224,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
