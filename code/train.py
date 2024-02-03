@@ -256,11 +256,11 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                                     attention_mask=batch['attention_mask'].to(device_2)):
                 text_embeddings.append(output.tolist())
 
-    similarity = cosine_similarity(text_embeddings, graph_embeddings)
-    solution = pd.DataFrame(similarity)
-    solution['ID'] = solution.index
-    solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
-    solution.to_csv('submission.csv', index=False)
+        similarity = cosine_similarity(text_embeddings, graph_embeddings)
+        solution = pd.DataFrame(similarity)
+        solution['ID'] = solution.index
+        solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
+        solution.to_csv('submission.csv', index=False)
 
 
 
