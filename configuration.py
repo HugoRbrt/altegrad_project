@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 5e-,
+        'learning_rate': 5e-4,
         'name_exp': "Last Dance NLPLS training skip + graphencoer_GCONV",
         'scheduler': 'linear',
         'nb_epochs': 60,
