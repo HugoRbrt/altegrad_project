@@ -103,6 +103,8 @@ class GCNConvSkip(nn.Module):
         self.skip_2 = nn.Linear(nhid, nhid)
         self.conv3 = GCNConv(nhid, nhid)
         self.skip_3 = nn.Linear(nhid, nhid)
+        self.conv4 = GCNConv(nhid, nhid)
+        self.skip_4 = nn.Linear(nhid, nhid)
 
         self.mol_hidden1 = nn.Linear(nhid, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
@@ -124,6 +126,11 @@ class GCNConvSkip(nn.Module):
         x3 = self.conv3(x, edge_index)
         skip_x = self.skip_3(x)  # Prepare skip connection
         x = skip_x + x3  # Apply skip connection
+        x = self.relu(x)
+        
+        x4 = self.conv4(x, edge_index)
+        skip_x = self.skip_4(x)  # Prepare skip connection
+        x = skip_x + x4  # Apply skip connection
         x = self.relu(x)
         
         x = global_max_pool(x, batch)
@@ -408,8 +415,8 @@ class Model(nn.Module):
         dim_text,
         ):
         super(Model, self).__init__()
-        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
-        # self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
+        # self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
