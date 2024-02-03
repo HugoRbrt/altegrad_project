@@ -62,8 +62,8 @@ class GraphEncoder_v2(nn.Module):
         self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
         self.conv3 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
-        self.conv4 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
-        self.skip_4 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
+        # self.conv4 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+        # self.skip_4 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
@@ -87,10 +87,10 @@ class GraphEncoder_v2(nn.Module):
         x = skip_x + x3  # Apply skip connection
         x = self.relu(x)
         
-        x4 = self.conv4(x, edge_index)
-        skip_x = self.skip_4(x)  # Prepare skip connection
-        x = skip_x + x4  # Apply skip connection
-        x = self.relu(x)
+        # x4 = self.conv4(x, edge_index)
+        # skip_x = self.skip_4(x)  # Prepare skip connection
+        # x = skip_x + x4  # Apply skip connection
+        # x = self.relu(x)
         
         x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()
@@ -423,8 +423,8 @@ class Model(nn.Module):
         dim_text,
         ):
         super(Model, self).__init__()
-        # self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
-        self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
+        self.graph_encoder = GraphEncoder_v2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        # self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):
