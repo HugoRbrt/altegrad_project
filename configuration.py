@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'matteo',
         'learning_rate': 5e-4,
-        'name_exp': "GAT 5 CONV 15HEADS + DROPOUT ",
+        'name_exp': "MLP 9 LAYERS",
         'scheduler': 'linear',
         'nb_epochs': 70,
         'batch_size': 200,
