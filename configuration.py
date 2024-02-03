@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 8e-4,
+        'learning_rate': 1e-3,
         'name_exp': "GAT ",
         'scheduler': 'linear',
         'nb_epochs': 80,
@@ -17,11 +17,11 @@ CFG_EXPERIMENTS = {
         'nhid': 900,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
-        'heads': 20,
+        'heads': 25,
         'comment': '',
         'T_max': '',
         'n_heads_text':8, 
-        'n_layers_text':4, 
+        'n_layers_text':5, 
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
