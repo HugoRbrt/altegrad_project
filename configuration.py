@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 8e-4,
         'name_exp': "SAGECONV",
         'scheduler': 'linear',
-        'nb_epochs': 65,
+        'nb_epochs': 2,
         'batch_size': 96,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
