@@ -386,11 +386,10 @@ class GraphEncoder_SuperGAT(nn.Module):
         self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
         self.conv4 = SuperGATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_4 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
-        self.conv5 = SuperGATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
-        self.skip_5 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
-        self.mol_hidden2 = nn.Linear(nhid, nout)
+        self.mol_hidden2 = nn.Linear(nhid, nhid)
+        self.mol_hidden3 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch):
         x = graph_batch.x
@@ -423,7 +422,8 @@ class GraphEncoder_SuperGAT(nn.Module):
         
         x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()
-        x = self.mol_hidden2(x)
+        x = self.mol_hidden2(x).relu()
+        x = self.mol_hidden3(x)
         return x
 
 #############################################################################################################
