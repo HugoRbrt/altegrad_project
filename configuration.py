@@ -6,10 +6,10 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 5e-4,
+        'learning_rate': 8e-4,
         'name_exp': "test save scheduler",
         'scheduler': 'linear',
-        'nb_epochs': 80,
+        'nb_epochs': 85,
         'batch_size': 200,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
@@ -20,8 +20,8 @@ CFG_EXPERIMENTS = {
         'heads': 25,
         'comment': '',
         'T_max': '',
-        'n_heads_text':12, 
-        'n_layers_text':6, 
+        'n_heads_text':8, 
+        'n_layers_text':5, 
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
