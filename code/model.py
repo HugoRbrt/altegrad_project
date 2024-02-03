@@ -459,8 +459,7 @@ class GraphEncoder_GATv2(nn.Module):
 
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
-        self.mol_hidden2 = nn.Linear(nhid, nhid)
-        self.mol_hidden3 = nn.Linear(nhid, nout)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
 
     def forward(self, graph_batch):
         x = graph_batch.x
@@ -488,8 +487,7 @@ class GraphEncoder_GATv2(nn.Module):
 
         x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()
-        x = self.mol_hidden2(x).relu()
-        x = self.mol_hidden3(x)
+        x = self.mol_hidden2(x)
         return x
 
 #############################################################################################################
@@ -701,8 +699,8 @@ class Model(nn.Module):
         device_2):
         super(Model, self).__init__()
         # self.graph_encoder = MLPModelSKIP(num_node_features, nout, nhid).to(device_1)
-        #self.graph_encoder = GraphEncoder_GAT(num_node_features, nout, nhid, graph_hidden_channels,heads).to(device_1)
-        self.graph_encoder = GraphEncoder_SuperGAT(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        self.graph_encoder = GraphEncoder_GAT(num_node_features, nout, nhid, graph_hidden_channels,heads).to(device_1)
+        # self.graph_encoder = GraphEncoder_SuperGAT(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         # self.graph_encoder = GraphEncoder_GATv2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name,n_heads_text,n_layers_text,hidden_dim_text, dim_text).to(device_2)
         

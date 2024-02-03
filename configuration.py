@@ -7,10 +7,10 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'matteo',
         'learning_rate': 5e-4,
-        'name_exp': "SUPERGAT 5 CONV 15HEADS + DROPOUT ",
+        'name_exp': "GAT 5 CONV 15HEADS + DROPOUT ",
         'scheduler': 'linear',
         'nb_epochs': 70,
-        'batch_size': 64,
+        'batch_size': 96,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
