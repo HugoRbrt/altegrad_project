@@ -211,6 +211,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'scheduler_state_dict': scheduler_lr.state_dict(),
+            'scaler_state_dict': scaler.state_dict(),
             'validation_accuracy': val_loss,
             'loss': loss,
             }, save_path)
