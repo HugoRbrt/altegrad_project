@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 8e-4,
-        'name_exp': "SuperGATConv (3) ",
+        'name_exp': "GATv2 (3) ",
         'scheduler': 'linear',
         'nb_epochs':70,
         'batch_size': 100,
