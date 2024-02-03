@@ -6,7 +6,7 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 5e-4,
+        'learning_rate': 1e-3,
         'name_exp': "GCNConvSkip (4) ",
         'scheduler': 'linear',
         'nb_epochs':70,
