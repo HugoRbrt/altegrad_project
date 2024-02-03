@@ -6,10 +6,10 @@ KAGGLE_DATASET_LIST = ['hugorbrt/nlplsv3']
 CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
-        'learning_rate': 8e-4,
+        'learning_rate': 5e-4,
         'name_exp': "test save scheduler",
         'scheduler': 'linear',
-        'nb_epochs': 70,
+        'nb_epochs': 80,
         'batch_size': 200,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
