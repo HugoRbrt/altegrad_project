@@ -101,19 +101,26 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         ) # nout = bert model hidden dim
     # model.to(device)
     print(model)
-    # checkpoint = torch.load('/kaggle/input/model/model100.pt')
-    # model.load_state_dict(checkpoint['model_state_dict'])
+    
     
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
-    # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     
     scaler = GradScaler()
     
     num_warmup_steps = cfg['num_warmup_steps']
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
     scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
+    
+    checkpoint = torch.load('/kaggle/input/model-true/model100(1).pt')
+    
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    scheduler_lr.load_state_dict(checkpoint['scheduler_state_dict'])
+    scaler.load_state_dict(checkpoint['scaler_state_dict'])
+    
+
     
     scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     
