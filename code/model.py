@@ -54,6 +54,8 @@ class GraphEncoder_v2(nn.Module):
         self.skip_2 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
         self.conv3 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
+        self.conv4 = GATConv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+        self.skip_4 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
@@ -75,6 +77,11 @@ class GraphEncoder_v2(nn.Module):
         x3 = self.conv3(x, edge_index)
         skip_x = self.skip_3(x)  # Prepare skip connection
         x = skip_x + x3  # Apply skip connection
+        x = self.relu(x)
+        
+        x4 = self.conv4(x, edge_index)
+        skip_x = self.skip_4(x)  # Prepare skip connection
+        x = skip_x + x4  # Apply skip connection
         x = self.relu(x)
         
         x = global_max_pool(x, batch)
