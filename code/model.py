@@ -443,6 +443,9 @@ class GraphEncoder_GATv2(nn.Module):
         self.skip_3 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
         self.conv4 = GATv2Conv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
         self.skip_4 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
+        self.conv5 = GATv2Conv(graph_hidden_channels * heads, graph_hidden_channels, heads=heads)
+        self.skip_5 = nn.Linear(graph_hidden_channels * heads, graph_hidden_channels * heads)
+
 
         self.mol_hidden1 = nn.Linear(graph_hidden_channels * heads, nhid)
         self.mol_hidden2 = nn.Linear(nhid, nout)
@@ -469,6 +472,11 @@ class GraphEncoder_GATv2(nn.Module):
         x4 = self.conv4(x, edge_index)
         skip_x = self.skip_4(x)  # Prepare skip connection
         x = skip_x + x4  # Apply skip connection
+        x = self.relu(x)
+
+        x5 = self.conv5(x, edge_index)
+        skip_x = self.skip_5(x)
+        x = skip_x + x5
         x = self.relu(x)
         
         x = global_max_pool(x, batch)
@@ -686,7 +694,8 @@ class Model(nn.Module):
         super(Model, self).__init__()
         # self.graph_encoder = MLPModelSKIP(num_node_features, nout, nhid).to(device_1)
         #self.graph_encoder = GraphEncoder_GAT(num_node_features, nout, nhid, graph_hidden_channels,heads).to(device_1)
-        self.graph_encoder = GraphEncoder_SuperGAT(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        # self.graph_encoder = GraphEncoder_SuperGAT(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
+        self.graph_encoder = GraphEncoder_GATv2(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
         self.text_encoder = TextEncoder(model_name,n_heads_text,n_layers_text,hidden_dim_text, dim_text).to(device_2)
         
     def forward(self, graph_batch, input_ids, attention_mask):

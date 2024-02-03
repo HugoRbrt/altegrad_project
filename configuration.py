@@ -7,10 +7,10 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'matteo',
         'learning_rate': 8e-4,
-        'name_exp': "SUPERGAT 5 CONV",
+        'name_exp': "Gatv2 6 CONV",
         'scheduler': 'linear',
         'nb_epochs': 70,
-        'batch_size': 128,
+        'batch_size': 96,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
         'nout':  768,
