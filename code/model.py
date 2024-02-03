@@ -415,10 +415,6 @@ class GraphEncoder_SuperGAT(nn.Module):
         x = skip_x + x4  # Apply skip connection
         x = self.relu(x)
 
-        x5 = self.conv5(x, edge_index)
-        skip_x = self.skip_5(x)  # Prepare skip connection
-        x = skip_x + x5  # Apply skip connection
-        x = self.relu(x)
         
         x = global_max_pool(x, batch)
         x = self.mol_hidden1(x).relu()

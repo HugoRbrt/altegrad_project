@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0:{  
         'who': 'matteo',
         'learning_rate': 8e-4,
-        'name_exp': "SUPERGAT 5 CONV 40HEADS ",
+        'name_exp': "SUPERGAT 4 CONV 40HEADS ",
         'scheduler': 'linear',
         'nb_epochs': 70,
         'batch_size': 32,
