@@ -101,19 +101,19 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         ) # nout = bert model hidden dim
     # model.to(device)
     print(model)
-    checkpoint = torch.load('/kaggle/input/model/model100.pt')
-    model.load_state_dict(checkpoint['model_state_dict'])
+    # checkpoint = torch.load('/kaggle/input/model/model100.pt')
+    # model.load_state_dict(checkpoint['model_state_dict'])
     
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                     betas=(0.9, 0.999),
                                     weight_decay=0.01)
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     
     scaler = GradScaler()
     
     num_warmup_steps = cfg['num_warmup_steps']
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
-    # scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
+    scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
     
     scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     
@@ -147,7 +147,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             scaler.scale(current_loss).backward()  # Backpropagation
             scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
             scaler.update() 
-            # scheduler_lr.step()
+            scheduler_lr.step()
             loss += current_loss.item()
             
             count_iter += 1
@@ -210,6 +210,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             'epoch': i,
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
+            'scheduler_state_dict': scheduler_lr.state_dict(),
             'validation_accuracy': val_loss,
             'loss': loss,
             }, save_path)

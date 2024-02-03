@@ -7,9 +7,9 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 8e-4,
-        'name_exp': "retrain",
+        'name_exp': "test save scheduler",
         'scheduler': 'linear',
-        'nb_epochs': 60,
+        'nb_epochs': 1,
         'batch_size': 200,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
