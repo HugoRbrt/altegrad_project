@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 8e-4,
         'name_exp': "GCNConvSkip (4) retrain ",
         'scheduler': 'linear',
-        'nb_epochs':90,
+        'nb_epochs':85,
         'batch_size': 300,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
