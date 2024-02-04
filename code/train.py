@@ -113,7 +113,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
     scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
     
-    # checkpoint = torch.load('/kaggle/input/models-retrain/model100(2).pt')
+    # Un-comment to resume and load checkpoint
+    # checkpoint = torch.load(path_ckpt)
     
     # model.load_state_dict(checkpoint['model_state_dict'])
     # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -122,8 +123,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     
 
     
-    scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
-    
+    # scheduler_cosine = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     # scheduler_expo = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1, last_epoch=-1, verbose=False)
 
     epoch = 0
@@ -151,8 +151,8 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
             optimizer.zero_grad()
             # current_loss.backward()
             # optimizer.step()
-            scaler.scale(current_loss).backward()  # Backpropagation
-            scaler.step(optimizer)         # Unscales gradients and calls optimizer.step()
+            scaler.scale(current_loss).backward()  
+            scaler.step(optimizer)         
             scaler.update() 
             scheduler_lr.step()
             loss += current_loss.item()
@@ -212,9 +212,9 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 'accuract/val': 0,
             })
         if best_lrap==lrap_score:
-            print('lrap_score improved saving checkpoint...')
-            save_path = os.path.join('./', 'model'+str(i)+'.pt')
-            if i>0:
+            if i>cfg["nb_epochs"]-10:
+                print('lrap_score improved saving checkpoint...')
+                save_path = os.path.join('./', 'model'+str(i)+'.pt')
                 torch.save({
                 'epoch': i,
                 'model_state_dict': model.state_dict(),
@@ -269,11 +269,10 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     solution = solution[['ID'] + [col for col in solution.columns if col!='ID']]
     solution.to_csv('submission.csv', index=False)
     
-    # Assuming graph_embeddings_array and text_embeddings_array are your numpy arrays
-    # with shapes (n_samples, n_features) for graph and text embeddings respectively
-
-    # Step 2: Apply UMAP to reduce dimensions separately
-    reducer = umap.UMAP(random_state=42)
+    ###################
+    # UMAP on embeddings
+    ###################
+    reducer = umap.UMAP()
 
 
     reducer.fit(np.array(graph_embeddings))
@@ -281,8 +280,6 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     umap_graph = reducer.transform(np.array(graph_embeddings))
     umap_text = reducer.transform(np.array(text_embeddings))
 
-    # Step 3: Generate a unique color for each pair of points
-    # This creates a list of colors, one for each sample
     num_samples = 3301
     colors = plt.cm.rainbow(np.linspace(0, 1, umap_graph.shape[0]))
 
@@ -293,73 +290,50 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     plt.legend()
     plt.title('UMAP Projection of Graph and Text Embeddings')
     plt.savefig(plot_filename)
-    plt.close()  # Close the plot to free up memory
-
-    # Step 2: Log the figure to wandb
-    if not no_wandb:  # Assuming no_wandb is a variable that controls wandb logging
+    plt.close()  
+    
+    if not no_wandb: 
         # Log the image file as an artifact
         plot_artifact = wandb.Artifact('plot_artifact_' + str(uuid.uuid4()).replace("-", ""), type='plot')
         plot_artifact.add_file(plot_filename)
         wandb.log_artifact(plot_artifact)
         
-        # Optionally, directly log the image under the current run (not as an artifact)
         wandb.log({"UMAP Projections": wandb.Image(plot_filename)})
 
-    # Remember to delete the local file if it's no longer needed
     os.remove(plot_filename)
     
+    #########################
+    # Cross modal inference
+    ########################
     # with torch.no_grad():
-    #     # Compute and store graph embeddings
-    #     graph_embeddings = []
-    #     for graph_batch in test_loader:
-    #         graph_batch = graph_batch.to(device_1)
-    #         graph_proj = graph_model(graph_batch)
-    #         graph_embeddings.extend(graph_proj.tolist())
-
-    #     # Initialize similarity matrix
-    #     similarity_matrix = []
+    #     similarity_matrix = np.zeros((3302, 1))
 
     #     # Iterate over text batches
-        
-    #     i=0
-    #     for text_batch in test_text_loader:
-    #         print(len(text_batch))
-    #         print(i)
-    #         i+=1
-    #         input_ids = text_batch['input_ids'].to(device_2)
-    #         attention_mask = text_batch['attention_mask'].to(device_2)
-
+    #     for idx, graph_batch in enumerate(test_loader):
     #         batch_similarity = []
-
-    #         # Compute text embeddings for each graph batch and calculate similarity
-    #         size = len(graph_batch)
-    #         for idx, graph_batch in enumerate(test_loader):
-    #             try:
-    #                 graph_batch = graph_batch.to(device_1)
-    #                 _, graph_latent = graph_model(graph_batch, with_latent=True)
-    #                 text_x = text_model(input_ids, attention_mask, graph_batch, graph_latent)
-    #             except:
-    #                 graph_batch = graph_batch.to(device_1)
-    #                 print(len(graph_batch))
-    #                 print(input_ids.shape)
-    #                 print(attention_mask.shape)
-    #                 print(graph_latent.shape)
-    #                 _, graph_latent = graph_model(graph_batch, with_latent=True)
-    #                 text_x = text_model(input_ids[:-1, :], attention_mask[:-1, :], graph_batch, graph_latent)
-                    
-
+    #         for text_batch in test_text_loader:
+    #             input_ids = text_batch['input_ids'].to(device_2)
+    #             attention_mask = text_batch['attention_mask'].to(device_2)
+            
+    #             graph_batch = graph_batch.to(device_1)
+    #             graph_proj, graph_latent = graph_model(graph_batch, with_latent=True)
+    #             text_x = text_model(input_ids, attention_mask, graph_batch, graph_latent)              
 
     #             # Calculate similarity with all graph embeddings
-    #             similarity = cosine_similarity(text_x.detach().cpu(), graph_embeddings)
+    #             similarity = cosine_similarity(text_x.detach().cpu(), graph_proj.detach().cpu())
+                
     #             batch_similarity.extend(similarity.tolist())
-
+                
     #         # Add the batch similarities to the similarity matrix
-    #         similarity_matrix.extend(batch_similarity)
+    #         similarity_matrix = np.concatenate((similarity_matrix, np.array(batch_similarity)), axis=1)
+    #         print(np.array(similarity_matrix).shape)
 
     #     # Convert to DataFrame and save
-    #     solution = pd.DataFrame(similarity_matrix)
+    #     similarity_matrix_T = np.array(similarity_matrix)[:3301, 1:3302]
+    #     solution = pd.DataFrame(similarity_matrix_T)
     #     solution['ID'] = solution.index
     #     solution = solution[['ID'] + [col for col in solution.columns if col != 'ID']]
+    #     os.chdir('/kaggle/working/')
     #     solution.to_csv('submission.csv', index=False)
 
     

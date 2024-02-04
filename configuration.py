@@ -11,7 +11,7 @@ CFG_EXPERIMENTS = {
         'scheduler': 'linear',
         'nb_epochs':5,
         'batch_size': 75,
-        'model_name': 'distilbert-base-uncased',
+        'model_name': 'distilbert-base-uncased',  # scibert_scivocab_uncased
         'num_node_features': 300,
         'nout':  768,
         'nhid': 900,
@@ -28,29 +28,7 @@ CFG_EXPERIMENTS = {
         'device_2': 'cuda:1',
         'with_fast_tokenizer': True,
     },
-    # 1:{  
-    #     'who': 'baptiste',
-    #     'lr': 2e-2,
-    #     'name_exp': "GAT(3) + scheduler linear + float16 + lr 2e-5 + freeze 2 first layers + embedding",
-    #     'scheduler': 'lineair',
-    #     'nb_epochs': 15,
-    #     'batch_size': 100,
-    #     'learning_rate': '',
-    #     'model_name': 'distilbert-base-uncased',
-    #     'num_node_features': 300,
-    #     'nout':  768,
-    #     'nhid': 300,
-    #     'graph_hidden_channels': 300,
-    #     'num_warmup_steps': 1000,
-    #     'heads': 20,
-    #     'comment': '',
-    #     'T_max': '',
-    #     'device_1': 'cuda:0',
-    #     'device_2': 'cuda:0',
-    # },
 }
 
     
 
-
-# scibert_scivocab_uncased
