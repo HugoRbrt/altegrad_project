@@ -113,7 +113,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
     scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
     
-    checkpoint = torch.load('/kaggle/input/models-2/model0(1).pt')
+    checkpoint = torch.load('/kaggle/input/models/model0 (2).pt')
     
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
