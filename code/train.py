@@ -113,12 +113,12 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
     scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
     
-    checkpoint = torch.load('/kaggle/input/models-retrain/model100(2).pt')
+    # checkpoint = torch.load('/kaggle/input/models-retrain/model100(2).pt')
     
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    scheduler_lr.load_state_dict(checkpoint['scheduler_state_dict'])
-    scaler.load_state_dict(checkpoint['scaler_state_dict'])
+    # model.load_state_dict(checkpoint['model_state_dict'])
+    # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    # scheduler_lr.load_state_dict(checkpoint['scheduler_state_dict'])
+    # scaler.load_state_dict(checkpoint['scaler_state_dict'])
     
 
     
@@ -214,16 +214,17 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         if best_lrap==lrap_score:
             print('lrap_score improved saving checkpoint...')
             save_path = os.path.join('./', 'model'+str(i)+'.pt')
-            torch.save({
-            'epoch': i,
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'scheduler_state_dict': scheduler_lr.state_dict(),
-            'scaler_state_dict': scaler.state_dict(),
-            'validation_accuracy': val_loss,
-            'loss': loss,
-            }, save_path)
-            print('checkpoint saved to: {}'.format(save_path))
+            if i>2:
+                torch.save({
+                'epoch': i,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler_lr.state_dict(),
+                'scaler_state_dict': scaler.state_dict(),
+                'validation_accuracy': val_loss,
+                'loss': loss,
+                }, save_path)
+                print('checkpoint saved to: {}'.format(save_path))
 
         # scheduler_cosine.step()
     print('Loading in wanddb')

@@ -9,7 +9,7 @@ CFG_EXPERIMENTS = {
         'learning_rate': 8e-4,
         'name_exp': "GAT retrain (3) ",
         'scheduler': 'linear',
-        'nb_epochs':60,
+        'nb_epochs':3,
         'batch_size': 75,
         'model_name': 'distilbert-base-uncased',
         'num_node_features': 300,
