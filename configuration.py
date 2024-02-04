@@ -21,7 +21,7 @@ CFG_EXPERIMENTS = {
         'comment': '',
         'T_max': '',
         'n_heads_text':8, 
-        'n_layers_text':5, 
+        'n_layers_text':4, 
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
