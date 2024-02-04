@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 8e-4,
-        'name_exp': "Rretrain SuperGatConv ",
+        'name_exp': "GCNConvSkip (4) retrain ",
         'scheduler': 'linear',
         'nb_epochs':60,
         'batch_size': 100,
@@ -17,7 +17,7 @@ CFG_EXPERIMENTS = {
         'nhid': 900,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
-        'heads': 25,
+        'heads': 30,
         'comment': '',
         'T_max': '',
         'n_heads_text':8, 
