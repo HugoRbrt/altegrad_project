@@ -10,8 +10,8 @@ The aim of the project, as described in the document, is to address the advanced
 
 # What you can find in the repo
 
-After running the experiments, the losses, LRAP, .csv submission, validation set alignment matrix and UMAP can be found at the following address 
-Wandb : 
+After running the experiments, the losses, LRAP, submission.csv, validation set alignment matrix and UMAP can be found at the following address 
+Wand : 
 
 - model.py: constrains all our models. It contains graph and text encoders.
 - train.py: This is the pipeline for training and recording the various metrics. 
@@ -20,7 +20,7 @@ Wandb :
 
 Pipeline : 
 
-As we don't have access to powerfull cluster we adapted a pipeline from : https://github.com/balthazarneveu/mva_pepites. So you can find some file to pull the code from our own Repositery GitHub and the push it on Kaggle. This code in contains in : 
+As we don't have access to powerfull GPUs cluster we adapted a pipeline from : https://github.com/balthazarneveu/mva_pepites. So you can find some file to pull the code from our own Repositery GitHub and the push it on Kaggle. This code in contains in : 
 
 - local_train.py
 - remote_training_template.ipynb
