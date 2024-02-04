@@ -1,23 +1,37 @@
-# Setup
+# Author 
 
-- copy this repo
-- Create accounts on Kaggle and weight and biases, get there API tokens (https://wandb.ai/authorize and https://www.kaggle.com/settings)
-- create a git token from your github accouunt: Settings->Developper settings->Fine-grained personal tokens->generate new tokens (give the token name you want, select only this repository, give Read-only acces for Contents in Repository permission, click on Generate token and copy the git_token)
-- fill the __kaggle_login file with your kaggle API tokens and username (you can custom how to use them by replacing 'user0' key)
-- In configuration.py, enter your git username, git repository (corresponding to this repository), add your dataset (here it's 'hugorbrt/nlplsv3') and give a name of the notebook you will run on kaggle (and never change it after!)
+- Callard Baptiste
+- Marengo Matteo 
+- Robert Hugo
 
-# How to use
-- custom your model/dataloader/training in /code folder (the configuration variable 'cfg' corresponds to CFG_EXPERIMENTS configuration.py)
-- run the terminal command `python remote_training.py --user user0 --branch your_branch_name` and replace the given options
-Note: by running this command, you will execute the function `run_experiment` in code/train.py for each configuration given in `CFG_EXPERIMENT` of configuration.py file.
-- You can also add the option `--nowandb` to avoir logs in wandb (usefull for local tests)
+# Objective 
 
-# First time: 
+The aim of the project, as described in the document, is to address the advanced task of retrieving molecules using natural language descriptions as queries, introduced by the paper "Text2Mol: Cross-Modal Molecule Retrieval with Natural Language Queries." This challenge involves developing a method to match textual data with molecular structures from a large database effectively. The project was undertaken as part of the ALTEGRAD course during the MVA master's semester and is part of a Kaggle challenge. The goal was to explore the applications of this task and analyze methods proposed in the literature, leading to the proposition of a new architecture based on the concepts studied in the ALTEGRAD course.
 
-- Go to kaggle and check your notifications to access your notebook.
-- Edit notebook manually
-- allow internet requires your permission (internet is required to clone the git), a verified kaggle account is required
-- Allow Kaggle secrets to access wandb (https://www.kaggle.com/discussions/product-feedback/114053) by associating the `wandb_api_key` label to your wandb API key value.
-- Add another Kaggle secret by associating the `git_token` label to your git token value.
-- Quick save your notebook.
-- Now run the remote training script again, this should execute.
+# What you can find in the repo
+
+After running the experiments, the losses, LRAP, .csv submission, validation set alignment matrix and UMAP can be found at the following address 
+Wandb : 
+
+- model.py: constrains all our models. It contains graph and text encoders.
+- train.py: This is the pipeline for training and recording the various metrics. 
+- configuration.py: This file contains a configuration that can be easily modified. 
+- data_loader.py : Data manipulation
+
+Pipeline : 
+
+As we don't have access to powerfull cluster we adapted a pipeline from : https://github.com/balthazarneveu/mva_pepites. So you can find some file to pull the code from our own Repositery GitHub and the push it on Kaggle. This code in contains in : 
+
+- local_train.py
+- remote_training_template.ipynb
+- remote_training.py
+
+The code can be easily launched : 
+
+```
+python remote_training.py --user user0 --branch your_branch_name [OPTION] --nowandb
+```
+
+# Credit 
+
+We have adapted the code from https://github.com/balthazarneveu/mva_pepites for our pipeline. This is generic code that allows deep learning code to be executed using the Kaggle API and facilitates collaboration within the team. 
