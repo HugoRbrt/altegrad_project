@@ -214,7 +214,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         if best_lrap==lrap_score:
             print('lrap_score improved saving checkpoint...')
             save_path = os.path.join('./', 'model'+str(i)+'.pt')
-            if i>1:
+            if i>0:
                 torch.save({
                 'epoch': i,
                 'model_state_dict': model.state_dict(),
