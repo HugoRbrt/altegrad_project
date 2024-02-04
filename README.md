@@ -11,7 +11,7 @@ The aim of the project, as described in the document, is to address the advanced
 # What you can find in the repo
 
 After running the experiments, the losses, LRAP, submission.csv, validation set alignment matrix and UMAP can be found at the following address 
-Wand : 
+Wandb : 
 
 - model.py: constrains all our models. It contains graph and text encoders.
 - train.py: This is the pipeline for training and recording the various metrics. 
