@@ -2,19 +2,17 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.nn import TransformerDecoder, TransformerDecoderLayer
-from torch_geometric.nn import GCNConv, MFConv, GATv2Conv, SuperGATConv, GATConv, LEConv, RGCNConv
+from torch_geometric.nn import GCNConv, GATv2Conv, SuperGATConv, GATConv, LEConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoConfig, AutoModel
 from peft import (
     LoraConfig, 
     get_peft_model, 
-    TaskType,
-    PeftModel
 )
 
 
 ##############################
-###### MLP Models
+###### MLP Encoder
 ##############################
 class MLPModel(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
@@ -52,12 +50,83 @@ class MLPModel(nn.Module):
     
 
 ##############################
+###### MLP + skip Encoder
+##############################
+
+class MLPModelSKIP(nn.Module):
+    def __init__(self, num_node_features, nout, nhid):
+        super(MLPModelSKIP, self).__init__()
+        self.temp = nn.Parameter(torch.Tensor([0.07]))
+        self.register_parameter( 'temp' , self.temp )
+        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm((nout))
+        self.mol_hidden1 = nn.Linear(num_node_features, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nhid)
+        self.mol_hidden3 = nn.Linear(nhid, nhid)
+        self.mol_hidden4 = nn.Linear(nhid, nhid)
+        self.mol_hidden5 = nn.Linear(nhid, nhid)
+        self.mol_hidden6 = nn.Linear(nhid, nhid)
+        self.mol_hidden7 = nn.Linear(nhid, nhid)
+        self.mol_hidden8 = nn.Linear(nhid, nhid)
+        self.mol_hidden9 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        
+        x = self.relu(self.mol_hidden1(x))
+        x = self.relu(self.mol_hidden2(x))+x
+        x = self.relu(self.mol_hidden3(x))+x
+        x = self.relu(self.mol_hidden4(x))+x
+        x = self.relu(self.mol_hidden5(x))
+        x = self.relu(self.mol_hidden6(x))+x
+        x = self.relu(self.mol_hidden7(x))
+        x = self.relu(self.mol_hidden8(x)) + x
+
+        x = global_max_pool(x, batch)
+        x = self.mol_hidden9(x)
+        x = self.ln(x)
+        x = x * torch.exp(self.temp)
+        return x
+
+##############################
 # Graph Encoders
 ##############################
 
-class GraphLEConv(nn.Module):
+class GraphGCNConv(nn.Module):
     def __init__(self, num_node_features, nout, nhid):
-        super(GraphLEConv, self).__init__()
+        super(GraphGCNConv, self).__init__()
+        self.nhid = nhid
+        self.nout = nout
+        self.relu = nn.ReLU()
+        self.conv1 = GCNConv(num_node_features, nhid)
+        self.conv2 = GCNConv(nhid, nhid)
+        self.conv3 = GCNConv(nhid, nhid)
+
+        self.mol_hidden1 = nn.Linear(nhid, nhid)
+        self.mol_hidden2 = nn.Linear(nhid, nout)
+
+    def forward(self, graph_batch):
+        x = graph_batch.x
+        edge_index = graph_batch.edge_index
+        batch = graph_batch.batch
+        x = self.conv1(x, edge_index)
+        x = self.relu(x)
+        x = self.conv2(x, edge_index)
+        x = self.relu(x)
+        x = self.conv3(x, edge_index)
+        x = self.relu(x)
+        
+        x = global_max_pool(x, batch)
+        x = self.mol_hidden1(x).relu()
+        x = self.mol_hidden2(x)
+        return x
+    
+
+class GraphLeConv(nn.Module):
+    def __init__(self, num_node_features, nout, nhid):
+        super(GraphLeConv, self).__init__()
         self.nhid = nhid
         self.nout = nout
         self.relu = nn.ReLU()
@@ -83,7 +152,6 @@ class GraphLEConv(nn.Module):
         x = self.mol_hidden1(x).relu()
         x = self.mol_hidden2(x)
         return x
-    
     
 class GraphGATConv(nn.Module):
     def __init__(self, num_node_features, nout, nhid, graph_hidden_channels, heads):
@@ -206,18 +274,18 @@ class GATSkip(nn.Module):
         x = self.relu(x)
         
         x2 = self.conv2(x, edge_index)
-        skip_x = self.skip_2(x)  # Prepare skip connection
-        x = skip_x + x2  # Apply skip connection
+        skip_x = self.skip_2(x)  
+        x = skip_x + x2  
         x = self.relu(x)
         
         x3 = self.conv3(x, edge_index)
-        skip_x = self.skip_3(x)  # Prepare skip connection
-        x = skip_x + x3  # Apply skip connection
+        skip_x = self.skip_3(x)  
+        x = skip_x + x3  
         x = self.relu(x)
         
         # x4 = self.conv4(x, edge_index)
-        # skip_x = self.skip_4(x)  # Prepare skip connection
-        # x = skip_x + x4  # Apply skip connection
+        # skip_x = self.skip_4(x)  
+        # x = skip_x + x4  
         # x = self.relu(x)
         
         x = global_max_pool(x, batch)
@@ -250,23 +318,23 @@ class GATv2Skip(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         x1 = self.conv1(x, edge_index)
-        skip_x = self.skip_1(x)  # Prepare skip connection
-        x = skip_x + x1  # Apply skip connection
+        skip_x = self.skip_1(x)  
+        x = skip_x + x1  
         x = self.relu(x)
         
         x2 = self.conv2(x, edge_index)
-        skip_x = self.skip_2(x)  # Prepare skip connection
-        x = skip_x + x2  # Apply skip connection
+        skip_x = self.skip_2(x)  
+        x = skip_x + x2  
         x = self.relu(x)
         
         x3 = self.conv3(x, edge_index)
-        skip_x = self.skip_3(x)  # Prepare skip connection
-        x = skip_x + x3  # Apply skip connection
+        skip_x = self.skip_3(x)  
+        x = skip_x + x3  
         x = self.relu(x)
         
         # x4 = self.conv4(x, edge_index)
-        # skip_x = self.skip_4(x)  # Prepare skip connection
-        # x = skip_x + x4  # Apply skip connection
+        # skip_x = self.skip_4(x)  
+        # x = skip_x + x4  
         # x = self.relu(x)
         
         x = global_max_pool(x, batch)
@@ -298,23 +366,23 @@ class SuperGatSkip(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         x1 = self.conv1(x, edge_index)
-        skip_x = self.skip_1(x)  # Prepare skip connection
-        x = skip_x + x1  # Apply skip connection
+        skip_x = self.skip_1(x)  
+        x = skip_x + x1  
         x = self.relu(x)
         
         x2 = self.conv2(x, edge_index)
-        skip_x = self.skip_2(x)  # Prepare skip connection
-        x = skip_x + x2  # Apply skip connection
+        skip_x = self.skip_2(x)  
+        x = skip_x + x2  
         x = self.relu(x)
         
         x3 = self.conv3(x, edge_index)
-        skip_x = self.skip_3(x)  # Prepare skip connection
-        x = skip_x + x3  # Apply skip connection
+        skip_x = self.skip_3(x)  
+        x = skip_x + x3  
         x = self.relu(x)
         
         # x4 = self.conv4(x, edge_index)
-        # skip_x = self.skip_4(x)  # Prepare skip connection
-        # x = skip_x + x4  # Apply skip connection
+        # skip_x = self.skip_4(x)  
+        # x = skip_x + x4  
         # x = self.relu(x)
         
         x = global_max_pool(x, batch)
@@ -352,18 +420,18 @@ class GCNConvSkip(nn.Module):
         x = self.relu(x)
         
         x2 = self.conv2(x, edge_index)
-        skip_x = self.skip_2(x)  # Prepare skip connection
-        x = skip_x + x2  # Apply skip connection
+        skip_x = self.skip_2(x)  
+        x = skip_x + x2  
         x = self.relu(x)
         
         x3 = self.conv3(x, edge_index)
-        skip_x = self.skip_3(x)  # Prepare skip connection
-        x = skip_x + x3  # Apply skip connection
+        skip_x = self.skip_3(x)  
+        x = skip_x + x3  
         x = self.relu(x)
         
         # x4 = self.conv4(x, edge_index)
-        # skip_x = self.skip_4(x)  # Prepare skip connection
-        # x = skip_x + x4  # Apply skip connection
+        # skip_x = self.skip_4(x)  
+        # x = skip_x + x4  
         # x = self.relu(x)
         
         x = global_max_pool(x, batch)
@@ -394,18 +462,18 @@ class LEConvSkip(nn.Module):
         edge_index = graph_batch.edge_index
         batch = graph_batch.batch
         x1 = self.conv1(x, edge_index)
-        skip_x = self.skip_1(x)  # Prepare skip connection
-        x = skip_x + x1  # Apply skip connection
+        skip_x = self.skip_1(x)  
+        x = skip_x + x1  
         x = self.relu(x)
         
         x2 = self.conv2(x, edge_index)
-        skip_x = self.skip_2(x)  # Prepare skip connection
-        x = skip_x + x2  # Apply skip connection
+        skip_x = self.skip_2(x)  
+        x = skip_x + x2  
         x = self.relu(x)
         
         x3 = self.conv3(x, edge_index)
-        skip_x = self.skip_3(x)  # Prepare skip connection
-        x = skip_x + x3  # Apply skip connection
+        skip_x = self.skip_3(x) 
+        x = skip_x + x3  
         x = self.relu(x)
         
         x = global_max_pool(x, batch)
@@ -413,7 +481,9 @@ class LEConvSkip(nn.Module):
         x = self.mol_hidden2(x)
         return x   
 
-    
+############################
+# Text Encoder
+############################
 class TextEncoder(nn.Module):
     def __init__(self, model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text):
         super(TextEncoder, self).__init__()
@@ -441,9 +511,7 @@ class TextEncoder(nn.Module):
           
         return encoded_text.last_hidden_state[:,0,:]
 
-############################
-#### Text Encoder
-############################
+# LoRa Text Encoder
 
 class TextEncoder_lora(nn.Module):
     def __init__(self, model_name, hidden_dim):
@@ -482,8 +550,6 @@ class Model(nn.Module):
         ):
         super(Model, self).__init__()
         # For model with attention
-        # self.graph_encoder = GATSkip(num_node_features, nout, nhid, graph_hidden_channels, heads).to(device_1)
-        # For model without attention
         self.graph_encoder = GCNConvSkip(num_node_features, nout, nhid).to(device_1)
         self.text_encoder = TextEncoder(model_name, n_heads_text, n_layers_text, hidden_dim_text, dim_text).to(device_2)
         
@@ -501,7 +567,7 @@ class Model(nn.Module):
 
 
 #########################################
-#  Cross Validarion Model
+#  Cross Modal Model
 ########################################
 
 class GraphEncoder_v2_cross(nn.Module):
