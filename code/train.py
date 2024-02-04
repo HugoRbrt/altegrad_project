@@ -113,12 +113,12 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     num_training_steps = nb_epochs * len(train_loader) - num_warmup_steps
     scheduler_lr = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = num_warmup_steps, num_training_steps = num_training_steps) 
     
-    checkpoint = torch.load('/kaggle/input/models-retrain/model100(2).pt')
+    # checkpoint = torch.load('/kaggle/input/models-retrain/model100(2).pt')
     
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    scheduler_lr.load_state_dict(checkpoint['scheduler_state_dict'])
-    scaler.load_state_dict(checkpoint['scaler_state_dict'])
+    # model.load_state_dict(checkpoint['model_state_dict'])
+    # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    # scheduler_lr.load_state_dict(checkpoint['scheduler_state_dict'])
+    # scaler.load_state_dict(checkpoint['scaler_state_dict'])
     
 
     
@@ -184,9 +184,9 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
                 x_graph, x_text = model(graph_batch.to(device_1), 
                                         input_ids.to(device_2), 
                                         attention_mask.to(device_2))
-                for i in range(x_graph.shape[0]):
-                    graph_embeddings.append(x_graph[i].tolist())
-                    text_embeddings.append(x_text[i].tolist())
+                for j in range(x_graph.shape[0]):
+                    graph_embeddings.append(x_graph[j].tolist())
+                    text_embeddings.append(x_text[j].tolist())
                 current_loss = contrastive_loss(x_graph.to(device_1), x_text.to(device_1))   
                 val_loss += current_loss.item()
         
@@ -203,6 +203,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         print('-----EPOCH'+str(i+1)+'----- done.  Validation loss: ', str(val_loss/(batch_size*len(val_loader))) )
         print('LRAP score: ', str(lrap_score))
         if not no_wandb:
+            
             wandb.log({
                 'epoch/val': i,
                 'loss/val':  val_loss/len(val_loader),
@@ -213,16 +214,17 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
         if best_lrap==lrap_score:
             print('lrap_score improved saving checkpoint...')
             save_path = os.path.join('./', 'model'+str(i)+'.pt')
-            torch.save({
-            'epoch': i,
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'scheduler_state_dict': scheduler_lr.state_dict(),
-            'scaler_state_dict': scaler.state_dict(),
-            'validation_accuracy': val_loss,
-            'loss': loss,
-            }, save_path)
-            print('checkpoint saved to: {}'.format(save_path))
+            if i>60:
+                torch.save({
+                'epoch': i,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler_lr.state_dict(),
+                'scaler_state_dict': scaler.state_dict(),
+                'validation_accuracy': val_loss,
+                'loss': loss,
+                }, save_path)
+                print('checkpoint saved to: {}'.format(save_path))
 
         # scheduler_cosine.step()
     print('Loading in wanddb')
