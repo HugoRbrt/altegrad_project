@@ -5,10 +5,10 @@ from torch.nn import TransformerDecoder, TransformerDecoderLayer
 from torch_geometric.nn import GCNConv, GATv2Conv, SuperGATConv, GATConv, LEConv
 from torch_geometric.nn import global_mean_pool, global_max_pool
 from transformers import AutoConfig, AutoModel
-from peft import (
-    LoraConfig, 
-    get_peft_model, 
-)
+# from peft import (
+#     LoraConfig, 
+#     get_peft_model, 
+# )
 
 
 ##############################
