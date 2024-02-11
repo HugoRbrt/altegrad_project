@@ -7,9 +7,9 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 8e-4,
-        'name_exp': "GAT retrain (3) ",
+        'name_exp': "UMAP",
         'scheduler': 'linear',
-        'nb_epochs':1,
+        'nb_epochs':75,
         'batch_size': 200,
         'model_name': 'distilbert-base-uncased',  # scibert_scivocab_uncased
         'num_node_features': 300,
@@ -17,7 +17,7 @@ CFG_EXPERIMENTS = {
         'nhid': 900,
         'graph_hidden_channels': 300,
         'num_warmup_steps': 1000,
-        'heads': 30,
+        'heads': 25,
         'comment': '',
         'T_max': '',
         'n_heads_text':8, 
@@ -25,7 +25,7 @@ CFG_EXPERIMENTS = {
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
-        'device_2': 'cuda:0',
+        'device_2': 'cuda:1',
         'with_fast_tokenizer': True,
     },
 }
