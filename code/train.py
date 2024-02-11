@@ -275,7 +275,7 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     reducer = umap.UMAP()
 
 
-    combined_embeddings = np.vstack((graph_embeddings, text_embeddings))
+    combined_embeddings = np.vstack((np.array(graph_embeddings), np.array(text_embeddings)))
     reducer.fit(combined_embeddings)
 
     # Transform embeddings to UMAP space
