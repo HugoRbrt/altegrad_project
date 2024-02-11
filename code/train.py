@@ -275,29 +275,67 @@ def run_experiment(cfg, cpu=False, no_wandb=False):
     reducer = umap.UMAP()
 
 
-    reducer.fit(np.array(graph_embeddings))
-    
-    umap_graph = reducer.transform(np.array(graph_embeddings))
-    umap_text = reducer.transform(np.array(text_embeddings))
+    combined_embeddings = np.vstack((graph_embeddings, text_embeddings))
+    reducer.fit(combined_embeddings)
 
-    num_samples = 3301
-    colors = plt.cm.rainbow(np.linspace(0, 1, umap_graph.shape[0]))
+    # Transform embeddings to UMAP space
+    umap_graph = reducer.transform(graph_embeddings)
+    umap_text = reducer.transform(text_embeddings)
 
-    plot_filename = f"umap_plot_{str(uuid.uuid4())}.png"
+    #########################
+    #########################
+    # Visualize with a practical approach due to large number of pairs
     plt.figure(figsize=(12, 8))
-    plt.scatter(umap_graph[:, 0], umap_graph[:, 1], color=colors, alpha=0.5, label='Graph Embeddings')
-    plt.scatter(umap_text[:, 0], umap_text[:, 1], color=colors, alpha=0.5, label='Text Embeddings')
-    plt.legend()
-    plt.title('UMAP Projection of Graph and Text Embeddings')
+    colors = plt.cm.Spectral(np.linspace(0, 1, 20))  # Use a spectral colormap
+
+    # Plot graph and text embeddings using the same color for each pair
+    for i in range(20):
+        plt.scatter(umap_graph[i, 0], umap_graph[i, 1], color=colors[i], s=50, edgecolors='black', label=f'Pair {i+1} Graph')
+        plt.scatter(umap_text[i, 0], umap_text[i, 1], color=colors[i], s=50, edgecolors='black', marker='^', label=f'Pair {i+1} Text')
+
+    # Add labels and legend
+    plt.legend(['Graph Embeddings', 'Text Embeddings'])
+    plt.title('UMAP Projection of Graph and Text Embeddings with 20 points')
+
+    # Save and handle the plot image
+    plot_filename = f"umap_plot_{uuid.uuid4()}.png"
     plt.savefig(plot_filename)
-    plt.close()  
-    
+    plt.close()
+
+    # Optional: log the image file as an artifact if using Weights & Biases
     if not no_wandb: 
-        # Log the image file as an artifact
         plot_artifact = wandb.Artifact('plot_artifact_' + str(uuid.uuid4()).replace("-", ""), type='plot')
         plot_artifact.add_file(plot_filename)
         wandb.log_artifact(plot_artifact)
-        
+        wandb.log({"UMAP Projections": wandb.Image(plot_filename)})
+
+    os.remove(plot_filename)
+    
+    #########################
+    #########################
+    # Visualize with a practical approach due to large number of pairs
+    plt.figure(figsize=(12, 8))
+    colors = plt.cm.Spectral(np.linspace(0, 1, umap_graph.shape[0]))  # Use a spectral colormap
+
+    # Plot graph and text embeddings using the same color for each pair
+    for i in range(umap_graph.shape[0]):
+        plt.scatter(umap_graph[i, 0], umap_graph[i, 1], color=colors[i], s=50, edgecolors='black', label=f'Pair {i+1} Graph')
+        plt.scatter(umap_text[i, 0], umap_text[i, 1], color=colors[i], s=50, edgecolors='black', marker='^', label=f'Pair {i+1} Text')
+
+    # Add labels and legend
+    plt.legend(['Graph Embeddings', 'Text Embeddings'])
+    plt.title('UMAP Projection of Graph and Text Embeddings')
+
+    # Save and handle the plot image
+    plot_filename = f"umap_plot_{uuid.uuid4()}.png"
+    plt.savefig(plot_filename)
+    plt.close()
+
+    # Optional: log the image file as an artifact if using Weights & Biases
+    if not no_wandb: 
+        plot_artifact = wandb.Artifact('plot_artifact_' + str(uuid.uuid4()).replace("-", ""), type='plot')
+        plot_artifact.add_file(plot_filename)
+        wandb.log_artifact(plot_artifact)
         wandb.log({"UMAP Projections": wandb.Image(plot_filename)})
 
     os.remove(plot_filename)

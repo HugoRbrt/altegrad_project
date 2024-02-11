@@ -9,8 +9,8 @@ CFG_EXPERIMENTS = {
         'learning_rate': 8e-4,
         'name_exp': "GAT retrain (3) ",
         'scheduler': 'linear',
-        'nb_epochs':5,
-        'batch_size': 75,
+        'nb_epochs':1,
+        'batch_size': 200,
         'model_name': 'distilbert-base-uncased',  # scibert_scivocab_uncased
         'num_node_features': 300,
         'nout':  768,
@@ -25,7 +25,7 @@ CFG_EXPERIMENTS = {
         'hidden_dim_text':3072, 
         'dim_text':768,
         'device_1': 'cuda:0',
-        'device_2': 'cuda:1',
+        'device_2': 'cuda:0',
         'with_fast_tokenizer': True,
     },
 }
