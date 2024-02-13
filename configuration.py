@@ -7,7 +7,7 @@ CFG_EXPERIMENTS = {
     0: {  
         'who': 'baptiste',
         'learning_rate': 8e-4,
-        'name_exp': "MLP + Skip",
+        'name_exp': "GAT + Skip",
         'scheduler': 'linear',
         'nb_epochs':75,
         'batch_size': 200,
